@@ -1,0 +1,81 @@
+% Hintergrund-Makro
+\newcommand\BackgroundPic{
+\put(0,0){
+\parbox[b][\paperheight]{\paperwidth}{%
+\vfill
+\centering
+\includegraphics[width=\paperwidth,height=\paperheight]{images/front.png}%
+\vfill
+}}}
+
+\AddToShipoutPicture*{\BackgroundPic}
+
+\begin{titlepage}
+\begin{center}
+\includegraphics[width = 50mm]{images/FHFF}%
+\hfill
+
+\end{center}
+
+
+\makeatletter
+
+\enlargethispage{3cm}
+
+%\begin{tikzpicture}[remember picture,overlay]
+%\node[shift={(10cm,-23.5cm)},opacity=1] {\includegraphics[scale=0.625]{images/hgi_nds_2.pdf}};
+%\end{tikzpicture}
+
+\begin{center}
+	\large
+	FRANKFURT UNIVERSITY OF APPLIED SCIENCES\\[.5\baselineskip]
+	FACULTY 2: COMPUTER SCIENCE AND ENGINEERING\\[.5\baselineskip]
+\end{center}
+
+
+\centering	
+\vspace{10mm}
+\mbox{HIGH INTEGRITY SYSTEMS}
+\begin{center}
+	\vspace{10mm}
+	
+	\Large
+	Master Thesis
+\end{center}
+
+%\vspace*{10cm}
+\begin{minipage}[b]{1\linewidth}
+	\sffamily
+
+ \begin{center}
+ 	
+    \LARGE{\textbf {\@title}}\\
+ 	\vspace{4cm}
+
+	
+	\begin{minipage}{.45\textwidth} 
+		\tab  \Large{Student:}\\
+		\tab  \Large{Matriculation number:}\\
+		\tab  \Large{Supervisor:}\\
+		\tab  \Large{$2^{nd}$ Supervisor:}
+	\end{minipage} %
+\hfill
+	\begin{minipage}{.45\textwidth} 
+		\Large{\@author}\\
+		\Large{1148479}\\
+		\Large{Prof. Dr. Christian Baun}\\
+		\Large{Prof. Dr. Eicke Godehardt}
+	\end{minipage}
+
+
+ 	\vspace{5cm}
+ 	
+ 	\normalsize{\@date\@.\\}
+ \end{center}
+	
+\end{minipage}
+
+
+\makeatother
+\end{titlepage}
+\ClearShipoutPicture
