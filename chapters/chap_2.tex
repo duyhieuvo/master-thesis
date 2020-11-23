@@ -13,10 +13,10 @@ As the application expands, monolithic architecture gradually becomes more rigid
 
 In microservices architecture, services need to have a mechanism to coordinate and work together to achieve end results. There are typically two approaches for this task, namely, request-driven and event-driven \cite{stopford2018designingeventdriven}.
 
-In the first approach, a service sends command to request for state change or queries current state in other services. This method is hard to scale because the control logic concentrates on the sender of requests. Adding a new service usually involves code change in other to include it in the control flow. For the latter approach, services communicate with each other using events.
+In the first approach, a service sends command to request for state change or queries current state in other services. This method is hard to scale because the control logic concentrates on the sender of requests. Adding a new service usually involves code change in others to include it in the control flow. For the latter approach, services communicate with each other using events.
 
 \textbf{Event}\\
-An event represents something occurred in the past and cannot be altered or deleted \cite{cqrsgregyoung}. It is simply a fact stating what has happened in the system. Whenever a service updates its state, it sends out an event. Any other service can listen and operate on this event without the sender knowing about it. This leads to inversion of control where the receiver of events now dictates the operational logic. As a result, services of the system can be more loosely coupled. New service can be easily plugged in the system and start to consume events without the need to modify other services. There are three common ways to use events, namely, event notification, event-carried state transfer and event sourcing \cite{martinfowlereventdriven}.
+An event represents something occurred in the past and cannot be altered or deleted \cite{cqrsgregyoung}. It is simply a fact stating what has happened in the system. Whenever a service updates its state, it sends out an event. Any other service can listen and operate on this event without the sender knowing about it. This leads to inversion of control when the receiver of events now dictates the operational logic. As a result, services of the system can be more loosely coupled. New service can be easily plugged in the system and start to consume events while other services remain unmodified. There are three common ways to use events, namely, event notification, event-carried state transfer and event sourcing \cite{martinfowlereventdriven}.
 
 \textbf{Event Notification}\\
 The events are used only for notifying about a state change on the sender. Receiver decides which operation should be executed upon receiving the events. This usually involves querying for more information from either the publisher of events or another service.   
@@ -40,7 +40,7 @@ With this pattern, each event encloses more detail information about what has be
 When a service keeps a state copy of another locally, it can access this data faster and becomes independent of the online status of the source of data. Nevertheless, having multiple copies of data across the system also means that the system can be in inconsistent state temporarily or even worse permanently if it is not designed carefully. This concern is closely related to the problem of how to atomically update the local state and publish a corresponding event \cite{eventstatetransferproblem}.
 
 \textbf{Event Sourcing and \acrfull{cqrs}}\\
-The event sourcing pattern takes one step further. Events are not used to only notify and help replicate states among services but they are now the primitive form of data store \cite{eventsourcingfowler}. Instead of updating the current state, services record every state change as events which are stored in the order of occurring in append-only fashion. This stream of events becomes the source of truth for the entire system. Services can derive the state of any entity from the events stream and keep it in memory to query when needed. Snapshot of the current state can be periodically created to avoid processing through all events after every restart.
+The event sourcing pattern takes one step further. Events are not used to only notify and help replicate states among services but they are now the primitive form of data store \cite{eventsourcingfowler}. Instead of updating the current state, services record every state change as events which are stored in the order of occurring in append-only fashion. This stream of events becomes the source of truth for the entire system. Services can derive the state of any entity from the events stream and keep it in memory or a cache to query when needed. Snapshot of the current state can be periodically created to avoid processing through all events after every restart.
 
 \begin{figure}[h]
 	\includegraphics[width=\linewidth]{images/eventsourcing.png}
@@ -50,7 +50,7 @@ The event sourcing pattern takes one step further. Events are not used to only n
 
 This approach eliminates the need of atomically updating state and generating event as in event-carried state transfer since there is now only publishing of events. Apart from providing a loosely-coupled and scalable way for coordination among services, event sourcing comes with additional benefits. The stream of events retains the entire history of the system and therefore can be used for auditing, extracting more value from past events, troubleshooting problem during production as well as for testing and fixing errors by simply replaying the events with the new system \cite{betts2013exploring}. 
 
-Event sourcing is often used together with CQRS \cite{cqrsgregyoung}. The CQRS pattern promotes the idea of having two independent sides of command and query corresponding two separate models for writing and reading data respectively. By doing this, each model can scale independently based on the load of each side. Moreover, this gives the flexibility to derive multiple ways to query data on the reading size without being tightly coupled to the data model of the input side. 
+Event sourcing is often used together with CQRS \cite{cqrsgregyoung}. The CQRS pattern promotes the idea of having two independent sides of command and query corresponding two separate models for writing and reading data respectively. By doing this, each model can scale independently based on the load of each side. Moreover, this gives the flexibility to derive multiple ways to query data on the reading side without being tightly coupled to the data model of the input side. 
 
 \begin{figure}[h]
 	\includegraphics[width=\linewidth]{images/cqrs.png}
@@ -58,22 +58,22 @@ Event sourcing is often used together with CQRS \cite{cqrsgregyoung}. The CQRS p
 	\label{fig:cqrs}
 \end{figure}
 
-In the context of event sourcing, the command side of CQRS is the stream of events. Greg Young pointed out a number of reasons why this is a good writing model \cite{cqrsgregyoung}. The append-only operation to add new events makes it more scalable. Moreover, there is no impedance mismatch between domain model of the application and the storage model as in the case of relational database because event is also a domain concept. On the query side, the representation of current state are created with the underline events stream. Figure \ref{fig:cqrs} illustrates an example of a simple bank account management system. Transactions of users are recorded as events. The queryable current account balance is derived by aggregating the history of transactions.
+In the context of event sourcing, the command side of CQRS is the stream of events. Greg Young pointed out a number of reasons why this is a good writing model \cite{cqrsgregyoung}. The append-only operation to add new events makes it more scalable. Moreover, there is no impedance mismatch between domain model of the application and the storage model as in the case of relational database because event is also a domain concept. On the query side, the representation of current state are created with the underline events stream. Figure \ref{fig:cqrs} illustrates an example of a simple bank account management system. Transactions of users are recorded as events. The queryable current account balance is derived by aggregating the history of transactions and writing it to a relational database which is solely for reading.
 
-Event-driven architecture and its related patterns are useful but it also comes with a cost of increasing complexity in the system. As can be seen from the above short summary, one of the most significant added values of this approach is to reduce the coupling and lay the foundation for systems with high demand for scalability. If this is not the case, a simpler approach should be chosen to not overcomplicate the system.
+Event-driven architecture and its related patterns are useful but it also comes with a cost of increasing complexity in the system \cite{eventsourcingishard1} \cite{eventsourcingishard2}. As can be seen from the above short summary, one of the most significant added values of this approach is to reduce the coupling and lay the foundation for systems with high demand for scalability. If this is not the case, a simpler approach should be chosen to not overcomplicate the system.
 
 
 
 
 \section{Event Stream Processing} \label{section:eventstreamprocessing}
-With the increasing amount of data, the demand about how data is processed and analyzed also evolves over time. In the early day, data is usually collected over a period of time and stored in a big bounded batch in a data warehouse. Some scheduled batch jobs will then go over the entire batch of data to generate insights and reports tying to the needs of the organization. However, this type of data processing gradually cannot keep up with the need of faster analysis allowing companies to response more timely to change. Therefore, the concept of stream processing begins to emerge.
+With the increasing amount of data, the demand about how data is processed and analyzed also evolves over time. With the batch processing paradigm, data is collected over a predefined period of time and stored in a big bounded batch in a data warehouse. Some scheduled batch jobs will then go over the entire batch of data to generate insights and reports tying to the needs of organizations. However, this type of data processing gradually cannot keep up with the need of faster analysis to allow companies to response more timely to changes. Therefore, the concept of stream processing begins to emerge.
 
 
-Unlike its batch counterpart, stream processing aims at handling unbounded data which is a better form for representing the flow of events in real world given their continuous and boundless nature. A stream processor can ingest one or more input streams and execute its business logic. It can also generate new data to other output streams which subsequently can be consumed by other stream processors. The data flow is continuous and new stream processors can always be added to incorporate new processing logic and generate more results.
+Unlike its batch counterpart, stream processing aims at handling unbounded data which is a better form for representing the flow of events in real world given their continuous and boundless nature. Stream processing frameworks are designed to handle this type of data with high throughput and horizontal scalability. A stream processor can ingest one or more input streams and execute its business logic. It can also generate new data to other output streams which subsequently can be consumed by other stream processors. The data flow is continuous and new stream processors can always be added to incorporate new processing logic and generate more results.
 
 \begin{figure}[h]
 	\includegraphics[width=\linewidth]{images/streamprocessing.png}
-	\caption{Stream processing paradigm.}
+	\caption{Stream processing concept.}
 	\label{fig:streamprocessing}
 \end{figure}
 
@@ -93,7 +93,7 @@ Jay Kreps described in his article a log-centric infrastructure that can solve t
 
 
 
-Processing streams of events on an organizational scale is a non-trivial task. This is where stream processing fits in by providing a scalable tool to handle such amount of data. Applications and their decoupled services can use stream processing to continuously consume, process and generate new events while data systems can use streaming tool to continuously integrate new data from the streams to their data representation. The result is a more neatly organized infrastructure with every system synchronize and communicate via the event streams using stream processing. 
+Processing streams of events on an organizational scale is a non-trivial task. This is where stream processing fits in by providing a scalable tool to handle such amount of data. Applications and their decoupled services can use stream processing to continuously consume, process and generate new events while data systems can use streaming tool to continuously integrate new data from the streams to their data representation. The result is a more neatly organized infrastructure with every system synchronizes and communicates via the event streams using stream processing. 
 
 \begin{figure}[h]
 	\centering
@@ -107,13 +107,21 @@ Processing streams of events on an organizational scale is a non-trivial task. T
 
 
 \section{\acrlong{esp} Platform}
-An \acrshort{esp} platform must facilitate the construction of software systems revolving around streams of events. According to Jay Kreps, it has two main uses \cite{eventstreamingplatform}. Firstly, is must provide the necessary infrastructure and tools for applications to work on and coordinate with each other around events streams. Secondly, the platform can serve as the integration point where various data systems can attach themselves into and synchronize data among them continuously.
+An \acrshort{esp} platform must facilitate the construction of software systems revolving around streams of events. According to Jay Kreps, it has two main uses \cite{eventstreamingplatform}. Firstly, it must provide the necessary infrastructure and tools for applications to work and coordinate with each other on top of events streams. Secondly, the platform can serve as the integration point where various data systems can attach themselves into and synchronize data among them continuously.
 
-To fulfill these two uses, the following fundamental capabilities are required. A platform must provide the mechanism for events storage. Optimally, it should also support the option to persist events for an infinite period of time since this will be the single source of truth that all data systems depend on. Accessing interface must be provided for applications to publish and consume events. Based on this, custom applications and services can already be self-implemented to do stream processing as well as integrating data to different destinations. However, such platform only provides minimal functionalities and burdens developers with many low-level implementation tasks.
+To fulfill these two uses, the following fundamental capabilities are required. A platform must have an events storage layer. Optimally, it should also support the option to persist events for an infinite period of time since this will be the single source of truth that all data systems depend on. Accessing interface must be provided for applications to publish and consume events. Based on this, custom applications and services can already be self-implemented to do stream processing as well as integrating data to different destinations. However, such platform only provides minimal functionalities and burdens developers with many low-level implementation tasks.
 
-In order to be more useful and easier to be integrate into the infrastructure of organization, an \acrshort{esp} platform must provide more supporting tools. More particularly, the platform should also support the processing of events streams either by providing a native stream processing tool or being able to integrate with external stream processing framework. For the data integration, the platform should come with ready-to-be-used tools to integrate with a wide range of existing data systems effortlessly including also legacy systems.
+In order to be more useful and easier to be integrate into the infrastructure of organizations, an \acrshort{esp} platform must provide more supporting tools. More particularly, the platform should also support the processing of events streams either by providing a native stream processing tool or being able to integrate with external stream processing framework. For the data integration, the platform should come with ready-to-be-used tools to integrate with a wide range of existing data systems effortlessly including also legacy systems. Moreover,the platform should have a rich set of utility tools for monitoring and management.
 
-All of these capabilities should be in a real-time, high throughput, scalable and highly reliable fashion so that the platform would not become the bottleneck in the infrastructure. Finally, the platform should have a rich set of utility tools for monitoring and management.
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=10cm,height=5cm]{images/espplatform.png}
+	\caption{Capabilities of an \acrshort{esp} platform.}
+	\label{fig:espplatform}
+\end{figure}
+
+
+All of these capabilities should be in a real-time, high throughput, scalable and highly reliable fashion so that the platform would not become the bottleneck in the infrastructure. 
 
 %The order of events must be preserved by the platform throughout their entire life cycle: in storage, transit and under process. All of these capabilities should be in a real-time, high throughput, scalable and highly reliable fashion so that the platform would not become the bottleneck in the infrastructure. Finally, the platform should have a rich set of utility tools for monitoring and management.
 
