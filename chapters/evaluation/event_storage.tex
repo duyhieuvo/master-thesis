@@ -32,14 +32,14 @@ All records published to Kafka will be retained. Old data can be cleaned up with
 
 For the first strategy, user can choose different retention policies for a partition based on maximum size or for a segment file of a partition based on retention period. Once the retention limit is exceeded, oldest segment file of the partition will be deleted. By default, there is no limit on the size of a partition and the retention period is 7 days. User can also configure infinite retention period if necessary.
 
-For the second strategy, the background cleaner thread of Kafka will regularly scan the segment files and keep only the latest record for each key value. Therefore, this only works with records with non-empty key value. Writing request of record without a key to a topic configured with compact cleanup policy will be rejected.
-
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=8cm,height=6.5cm]{images/compact-kafka.png}
+	\includegraphics[width=6.5cm,height=5.5cm]{images/compact-kafka.png}
 	\caption{Log compaction on Kafka (taken from Kafka documentation \cite{kafkadocumentation}).}
 	\label{fig:compactekafka}
 \end{figure}
+For the second strategy, the background cleaner thread of Kafka will regularly scan the segment files and keep only the latest record for each key value (Figure \ref{fig:compactekafka}). Therefore, this only works with records with non-empty key value. Writing request of record without a key to a topic configured with compact cleanup policy will be rejected.
+
 
 The two strategies can also be combined. With this setup, topics will be compacted regularly but when the retention maximum size or maximum retention period is reached, the data will also be removed regardless of being compacted or not. For example, in case of an online shopping application where each order is kept track by a sequence of events published to Kafka as records, when users are interested in the latest status of an order but only if the order is not older than 3 months, it is reasonable to this combination of retention strategies.
 
