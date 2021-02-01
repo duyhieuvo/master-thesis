@@ -106,7 +106,7 @@ Processing streams of events on an organizational scale is a non-trivial task. T
 
 
 
-\section{\acrlong{esp} Platform}
+\section{\acrlong{esp} Platform} \label{section:general-ESP-platform}
 An \acrshort{esp} platform must facilitate the construction of software systems revolving around streams of events. According to Jay Kreps, it has two main uses \cite{eventstreamingplatform}. Firstly, it must provide the necessary infrastructure and tools for applications to work and coordinate with each other on top of events streams. Secondly, the platform can serve as the integration point where various data systems can attach themselves into and synchronize data among them continuously.
 
 To fulfill these two uses, the following fundamental capabilities are required. A platform must have an events storage layer. Optimally, it should also support the option to persist events for an infinite period of time since this will be the single source of truth that all data systems depend on. Accessing interface must be provided for applications to publish and consume events. Based on this, custom applications and services can already be self-implemented to do stream processing as well as integrating data to different destinations. However, such platform only provides minimal functionalities and burdens developers with many low-level implementation tasks.

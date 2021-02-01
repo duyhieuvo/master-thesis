@@ -10,6 +10,16 @@
 \usepackage{ifpdf}
 \usepackage{ifthen}
 
+\usepackage{geometry}       % customize page layout
+
+\geometry{
+	footskip=50pt
+}
+
+%plus, minus signs for text
+\def\Plus{\texttt{+}}
+\def\Minus{\texttt{-}}
+
 % Set date here 
 %\day=6 \month=6 \year=2012
 \newcommand\tab[1][1cm]{\hspace*{#1}}
@@ -43,6 +53,8 @@
 \usepackage{booktabs}
 \usepackage{marvosym}
 \usepackage{multirow}
+\usepackage{adjustbox}
+\usepackage{tabularx,ragged2e}
 
 % Math stuff and units
 \usepackage{latexsym,amsmath, amssymb, amsfonts, upgreek}

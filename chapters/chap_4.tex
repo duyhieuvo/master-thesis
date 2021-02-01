@@ -1,2 +1,65 @@
 \chapter{Evaluation of Platforms} \label{chap:evaluation}
-Lorem ipsum dolor sit amet consectetuer parturient ac pulvinar magna porttitor. Accumsan vel ac eros laoreet Nulla leo Nulla vel Pellentesque Quisque. Adipiscing penatibus Phasellus egestas leo id neque nec quis est orci. Porta tellus ligula ut ridiculus eros eget ut Vivamus dictum nulla. Dui wisi enim vitae nulla Fusce Curabitur congue consectetuer urna Quisque. Felis Vestibulum Quisque sed Vestibulum et malesuada ac id tristique vitae. Aliquam Suspendisse mattis et libero et tincidunt quis tellus eget consectetuer. Libero Morbi cursus augue eget dapibus tincidunt nunc parturient id arcu. Donec sapien enim Aenean convallis Donec elit tincidunt dolor vitae tellus. Ac consectetuer at tortor malesuada ac dui ligula habitant habitasse congue. 
+\section{General concepts}
+Before going into comparison, the general concepts of the three platforms will be quickly recapped to provide a basis about the working mechanism of these platform. More detail elaboration of their features will be presented during the evaluation.
+
+\textbf{Apache Kafka}
+
+\begin{figure}[h]
+	\includegraphics[width=\linewidth]{images/general-kafka.png}
+	\caption{General concept of Apache Kafka.}
+	\label{fig:kafkageneral}
+\end{figure}
+
+
+Apache Kafka is a platform designed specifically for event streaming. There are a number of fundamental concepts and core components of Kafka:
+\begin{itemize}
+	\item Record: this is the name for message published to Kafka. Each record can have a key, a value, and some metadata. This is also usually referred as event or message.
+	\item Kafka broker: this is the heart of Kafka. A broker is in charge of serving read/write requests and persisting published messages from clients to its disk. Kafka usually runs in cluster with three or more broker. In the current release of Kafka, the cluster also include one or more Zookeeper nodes to maintain metadata of these brokers. However, Zookeeper will soon be removed completely from Kafka in later release and metadata will be maintained natively on Kafka broker instead \cite{kafkaremovezookeeper}.
+	\item Topic and partition: Records are organized into different topics on Kafka. A topic further comprises of multiple partitions, each of which is an append-only and immutable log. New records will be appended to the end of the log. Each record in a partition is uniquely identified by an incremental offset number. There are two types of partition, namely, leader and follower. Read and write operations will be done on the active leader partition. Follower partitions are replicas of the leader which reside on different brokers in the cluster and cannot serve requests. Since Kafka 2.4, it is possible to read records from follower replicas as well \cite{kafkareadfromfollower}. Nevertheless this feature is disabled by default.
+	\item Kafka clients: There is Producer API which is used to publish records to Kafka topics. On the other hand, Consumer API is used to read records from a Kafka topic. 
+\end{itemize}
+
+In this thesis, the current release 2.6.0 of Kafka will be evaluated.
+
+\textbf{Apache Pulsar}
+
+\begin{figure}[h]
+	\includegraphics[width=\linewidth]{images/general-pulsar.png}
+	\caption{General concept of Apache Pulsar.}
+	\label{fig:pulsargeneral}
+\end{figure}
+
+Apache Pulsar is designed as a multiple-purposed platform by combining the concept of traditional messaging and event streaming. Following are the main concepts of Pulsar:
+\begin{itemize}
+	\item Message: a message published to Pulsar has a key-value format along with some metadata.
+	\item Pulsar broker: this component is responsible for serving read/write requests from clients and send persisting request of messages to the persistence layer. There are usually many brokers run together in a cluster.
+	\item Bookkeeper: this is the persistence layer of Pulsar. Bookkeeper handles the durable storage of messages upon receiving requests from the Pulsar broker. Messages are stored on Bookkeeper ledgers which are immutable logs with new records being appended to the end. The Bookkeeper usually runs in a cluster with multiple nodes which are called Bookies. 
+	\item A Pulsar cluster is made from a cluster of Pulsar brokers, a cluster of Bookkeeper nodes and a few Zookeeper nodes for metadata management of these clusters.
+	\item Topic and partition: Apache Pulsar organize records into different topics. Each broker is responsible for read/write request of a different subset of topics. A topic can also be split further into multiple partitions. However, a partition is internally also a normal Pulsar topic which is managed transparently to user by Pulsar. Records in a Pulsar partition or a non-partitioned topic are uniquely identified by message IDs.
+	\item Pulsar clients: Messages can be published to Pulsar topic with Pulsar Producer API. For messages consumption, there are two different client APIs, namely, Consumer API and Reader API. Each of these consumption clients has different level of flexibility and can be used in different cases. The detail comparison of Consumer and Reader is given in the evaluation section of messaging patterns.
+\end{itemize}
+
+The current release 2.7.0 of Pulsar will be evaluated.
+
+\textbf{NATS Streaming}
+\begin{figure}[h]
+	\includegraphics[width=\linewidth]{images/general-nats.png}
+	\caption{General concept of NATS Streaming.}
+	\label{fig:pulsargeneral}
+\end{figure}
+
+NATS Streaming is an event streaming add-on built on top of NATS server which is a messaging system without persistent layer. It has some core concepts:
+\begin{itemize}
+	\item Message: a message published to NATS Streaming contains a value and some metadata.
+	\item NATS Streaming server: A NATS Streaming server comprises of a normal NATS server as the messaging layer and a streaming module to receive and persist message on NATS server to a pluggable durable storage. NATS Streaming comes with an embedded NATS server but can also be configured to work with an existing NATS server. A number of NATS Streaming servers can be grouped together into a cluster in two modes: clustering and fault tolerance. In the first mode, each server retains a full copy of all messages in a separated data store. In the latter mode, nodes in the cluster share a single data store.
+	\item Channel: On NATS Streaming, messages are organized into channels which internally are made from append-only message logs. A message in a channel can uniquely be identified with an incremental sequence number.
+	\item NATS Streaming client: NATS streaming provides client API to publish and subscribe to messages on channels.  
+\end{itemize}
+In the thesis, the latest version 0.19.0 of NATS Streaming is used for assessment.
+
+Moreover, each platform provides different implementations of its clients in different programming languages. Nevertheless, to have a uniform benchmark, when the evaluation involves comparing clients, the Java implementations will be used since this programming language is officially supported by all three platforms.
+
+\input{chapters/evaluation/event_storage}
+
+
+
