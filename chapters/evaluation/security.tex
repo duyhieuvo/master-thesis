@@ -1,0 +1,8 @@
+\section{Event storage} \label{section:security}
+\large \textbf{Apache Kafka}\\
+\normalsize
+\textbf{Authentication mechanisms}\\
+In a Kafka cluster, there are Kafka brokers and Zookeeper nodes. Only legitimate communication peers, namely, reliable Kafka clients, tools which also use Kafka clients internally such as Kafka Connect cluster for data integration and other Kafka brokers in the cluster can initiate connections to a Kafka broker. On the other hand, Zookeeper should be accessed only by Kafka brokers to maintain their metadata. Moreover, Kafka tools also expose REST endpoints for configuration and management such as deploying connectors in case of Kafka Connect. Kafka provides authentication mechanism to control access to all these endpoints.
+
+In order to control access to a Kafka broker, Kafka supports authenticating communication peers with  Transport Layer  Security/Secure Sockets Layer (TLS/SSL) protocol (https://en.wikipedia.org/wiki/Transport_Layer_Security) and Simple Authentication and  Security Layer (SASL) (https://en.wikipedia.org/wiki/Simple_Authentication_and_Security_Layer) which can be used with different pluggable authentication mechanisms. 
+

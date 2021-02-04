@@ -1,0 +1,50 @@
+\section{Performance} \label{section:performance}
+There are many comparisons on the time behaviors of most common message delivery systems including Apache Kafka, Apache Pulsar and NATS Streaming. However, the benchmarking results from the comparison of the company SoftwareMill \cite{benchmarkfull} are used in this thesis for the evaluation based on a number of reasons. Moreover, this test takes into consideration all three platforms and provides a uniform benchmark setup for comparison. Finally, since this comparison is done by an independent company, the result can be more objective compared to the benchmarking done by the company Confluent which endorses Kafka \cite{benchmarkkafkapulsarrabbitmq} or the comparison by the StreamNative company which advocates Pulsar \cite{benchmarkkafkapulsar}.
+
+The setup of the test includes a cluster of servers and a number of client instances (producers and consumers) all running on AWS EC2 instances. In the benchmarking, each message is required to have three replicas on different server nodes. Therefore, the cluster of each ESP platform is set up accordingly. 
+
+\underline{Apache Kafka}: Three Kafka brokers running on three different EC2 instances. In addition, there is also a Zookeeper instance running on the same EC2 node with each broker. The replication factor is configured to 3 and the minimum in-sync replica is set to 2.
+
+\underline{Apache Pulsar}: There are three Bookies running on three different EC2 instances. Two Pulsar brokers are started on two different EC2 instances. In addition, there are three separated Zookeeper nodes. The write quorum and acknowledge quorum are set to 3 and 2 respectively.
+
+\underline{NATS Streaming}: Three NATS Streaming server instances are started on three different EC2 instances. The servers are configured to use file store to persist messages on their mounted disks and to run in clustering mode for data replication. 
+
+In the benchmarking scenario, producers and consumers use one topic or channel to send and receive messages. The producers are configured to synchronously wait until the server acknowledge that the published messages are safely persisted and replicated. With Kafka, the producer has to wait for acknowledgment from all in-sync replicas. For Pulsar, On the consumers side, at-least-once delivery guarantee is chosen. The consumers can asynchronously acknowledge the consumption of messages to the server.
+
+The throughput of the messages on both publishing and consuming sides are measured in messages per second with all messages having the same size. The end-to-end latencies of each message within a 1-minute window are also measured and the 95th percentile value is recorded in the result.  
+
+Moreover, in the tests of Apache Pulsar and Apache Kafka, the topic is partitioned to balance the load among the brokers and maximize the utilization of the available processing capability. In the test, the Pulsar topic is only partitioned into 4 because adding more partitions to the topic does not enhance the performance.
+
+\begin{table}[h]
+	\centering
+	\caption{Benchmarking results of Kafka, Pulsar and NATS Streaming \cite{benchmarkfull}.}
+	\label{table:performance}
+	\begin{adjustwidth}{-1cm}{}
+	\begin{tabular}{|l|l|l|l|l|l|l|l|}
+		\hline
+		& Partitions                                              & \begin{tabular}[c]{@{}l@{}}Threads\\ /node\end{tabular} & \begin{tabular}[c]{@{}l@{}}Sender \\ nodes\end{tabular} & \begin{tabular}[c]{@{}l@{}}Receiver\\ nodes\end{tabular} & \begin{tabular}[c]{@{}l@{}}Producing\\ throughput\\ (msgs/s)\end{tabular} & \begin{tabular}[c]{@{}l@{}}Consuming\\ throughput\\ (msgs/s)\end{tabular} & \begin{tabular}[c]{@{}l@{}}End-to-end\\ latency\\ (ms)\end{tabular} \\ \hline
+		\begin{tabular}[c]{@{}l@{}}Apache\\ Kafka\end{tabular}   & 64                                                       & 25                                                      & 8                                                       & 16                                                       & 272 828                                                                    & 272 705                                                                    & 48                                                                  \\ \hline
+		\begin{tabular}[c]{@{}l@{}}Apache\\ Pulsar\end{tabular}  & 4                                                        & 25                                                      & 8                                                       & 16                                                       & 176 439                                                                    & 176 388                                                                    & 50                                                                  \\ \hline
+		\begin{tabular}[c]{@{}l@{}}NATS\\ Streaming\end{tabular} & \begin{tabular}[c]{@{}l@{}}Not\\ applicable\end{tabular} & 25                                                      & 8                                                       & 16                                                       & 26 699                                                                     & 26 696                                                                     & 148                                                                 \\ \hline
+	\end{tabular}
+ \end{adjustwidth}
+\end{table}
+\iffalse
+\begin{table}[h]
+	\centering
+	\caption{Benchmarking results of Kafka, Pulsar and NATS Streaming.}
+	\label{table:performance}
+
+	\begin{tabular}{|l|l|l|l|l|l|l|l|}
+		\hline
+		& Partitions     & Threads/node & Sender nodes & Receiver nodes & Producing throughput (msgs/s) & Consuming throughput (msgs/s) & End-to-end latency (ms) \\ \hline
+		Apache Kafka   & 64             & 25           & 8            & 16             & 272 828                       & 272 705                       & 48                      \\ \hline
+		Apache Pulsar  & 4              & 25           & 8            & 16             & 176 439                       & 176 388                       & 50                      \\ \hline
+		NATS Streaming & Not applicable & 25           & 8            & 16             & 26 699                        & 26 696                        & 148                     \\ \hline
+	\end{tabular}
+
+\end{table}
+\fi
+With the same number of sending and receiving threads, Apache Kafka is outstanding with the throughput of approximately 270 000 messages per second and the 95th percentile value of latency around 48 milliseconds. Next is Apache Pulsar with the throughput of roughly 170 000 messages per second. The end-to-end latency of Pulsar is as good as Kafka with 50 milliseconds. NATS Streaming performance is not as good as the other platforms with throughput of only 26 000 messages per second and latency of 148 milliseconds. This is understandable since only one server instance in the NATS cluster can serve requests. 
+
+To summary, with the same hardware capacity, Kafka has the best performance among three platforms in term of both throughput and end-to-end latency. Apache Pulsar comes is in the middle with the same latency as Kafka and lower throughout. NATS Streaming has the lowest throughput and the highest end-to-end latency.

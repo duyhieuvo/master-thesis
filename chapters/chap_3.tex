@@ -4,7 +4,7 @@
 As the concept of using stream as a source of truth gains more attention and becomes more popular, many projects aiming at creating a processing platform evolving around streams started to take shape. 
 Many companies first started their projects as in-house products and then later open-sourced them to enhance the development pace with the help of community. Kafka, which was first developed at LinkedIn, is the first prominent name in the field \cite{apachekafka}. It was later open sourced to the Apache Software Foundation. Yahoo! also created their own stream processing platform named Pulsar and it is now also an Apache project \cite{apachepulsar}. The company Alibaba also joins the trend by open sourcing their RocketMQ to Apache Foundation \cite{rocketmq}. In addition, there is the NATS streaming server, which is developed and maintained by the company Synadia on top of NATS messaging system to provide stream processing capability \cite{natsstreaming}. It is currently an incubating project of Cloud Native Computing Foundation. Pravega is also a quite new open-source project in the field \cite{pravega}. All these platforms are released under Apache-2.0 License.
 
-Since an adequate evaluation for all these platforms could not be contained within the scope of the thesis, only three platforms will be selected based on a set of criteria indicating the maturity, the size of the active community, the popularity of the platform and the quality of documentation.
+Since an adequate evaluation for all these platforms could not be contained within the scope of the thesis, only three platforms will be selected based on a set of criteria indicating the maturity, the size of the community, the popularity of the platform and the quality of documentation.
 
 Maturity is evaluated based on the project stage in an open source foundation if it belongs to one and the date of the first release. Because each project has different in-house phase before open-sourcing, the date of release on GitHub is chosen as the standardized criterion.
 
@@ -20,7 +20,7 @@ The result of the preliminary evaluation is summarized in Table \ref{table:preli
 	\includegraphics[width=\linewidth]{images/preliminary}
 \end{table}
 
-According to these criteria, Apache Kafka and Apache Pulsar are the leaders in all preliminary categories. Among the three remaining platforms, RocketMQ is the most popular in the community. However, the document page of RocketMQ is unfortunately very inadequate and outdated. This could become a great problem during the evaluation.  Therefore, RocketMQ will not be considered in the thesis. Regarding Pravega, despite the promising set of rich features, it is not mature enough since it is still in the sandbox stage at the Cloud Native Computing Foundation. Moreover, the community of Pravega is still too small. On the other hand, although NATS streaming has a moderate community, it has a reasonable maturity and quality of documentation. Moreover, it is built on top of NATS messaging system which is used in industry by many companies such as Siemens, Pivotal, GE and therefore can inherit its stability. The evaluation of NATS streaming can be greatly beneficial for organizations which already have NATS messaging in the infrastructure to integrate NATS streaming more easily.
+According to these criteria, Apache Kafka and Apache Pulsar are the leaders in all preliminary categories. Among the three remaining platforms, RocketMQ is the most popular. However, the document page of RocketMQ is unfortunately very inadequate and outdated. This could become a great problem during the evaluation.  Therefore, RocketMQ will not be considered in the thesis. Regarding Pravega, despite the promising set of rich features, it is not mature enough since it is still in the sandbox stage at the Cloud Native Computing Foundation. Moreover, the community of Pravega is still too small. On the other hand, although NATS streaming has a moderate community, it has a reasonable maturity and quality of documentation. Moreover, it is built on top of NATS messaging system which is used in industry by many companies such as Siemens, Pivotal, GE and therefore can inherit its stability. The evaluation of NATS streaming can be greatly beneficial for organizations which already have NATS messaging in the infrastructure to integrate NATS streaming more easily.
 
 As a result, the three platforms which will be inspected in depth are Apache Kafka, Apache Pulsar and NATS streaming.
 
@@ -122,7 +122,7 @@ In distributed systems where producers and receivers of data are independent, it
 
 \textbf{10: Usability and Community}: this category is also derived from the ISO25010 standard. This refers to how fast and easy for users to get used to the platform and start to integrate it into their system. This can be a very important factor when choosing an ESP platform. 
 
-10.1: Community size: for usability and learnability, the size of the active community is very important. A community of many users and active developers could be a great source of support. Moreover, apart from learnability, a platform with a big community can gain more contributions such as detecting issues, adding new features. This can help speed up the development and enhance the quality of the platform.
+10.1: Active community: for usability and learnability, the activeness of the community is very important in addition to its size. A community of many active developers could be a great source of support. Moreover, a platform with an lively community can gain more contributions such as detecting issues, adding new features. This can help speed up significantly the development and enhance the quality of the platform.
 
 10.2: Available training courses: in addition to available document, there should be a good selection training courses available. 
 
@@ -174,7 +174,7 @@ For different use cases, the priority might be different. Therefore, despite not
 		9.2         & Consumer group failover mechanism                        \\ \hline
 		9.3         & Broker failover mechanism                                \\ \hline
 		\textbf{10}  & \textbf{Usability and Community}                         \\ \hline
-		10.1         & Community size                                           \\ \hline
+		10.1         & Active community                                       \\   \hline
 		\textbf{11}  & \textbf{Performance}                                     \\ \hline
 		11.1         & End-to-end latency                                       \\ \hline
 		11.2         & Throughput                                               \\ \hline
