@@ -26,16 +26,6 @@
 
 
 
-@inproceedings{intorruk2019comparative,
-	title={A Comparative Study on Performance and Resource Utilization of Real-time Distributed Messaging Systems for Big Data},
-	author={Intorruk, Somprasong and Numnonda, Thanisa},
-	booktitle={2019 20th IEEE/ACIS International Conference on Software Engineering, Artificial Intelligence, Networking and Parallel/Distributed Computing (SNPD)},
-	pages={102--107},
-	year={2019},
-	organization={IEEE}
-}
-
-
 @misc{benchmarkfull,
 	author = {Adam Warski},
 	title = {Evaluating persistent, replicated message queues (2020 edition)},
@@ -43,12 +33,6 @@
 	note = {Accessed: 2020-11-12}
 }
 
-@misc{benchmarknatskafka,
-	author = {Tyler Treat},
-	title = {Benchmarking NATS Streaming and Apache Kafka},
-	howpublished = {\url{https://dzone.com/articles/benchmarking-nats-streaming-and-apache-kafka}},
-	note = {Accessed: 2020-11-12}
-}
 @misc{benchmarkkafkapulsarrabbitmq,
 	author = {Alok Nikhil, Vinoth Chandar},
 	title = {Benchmarking Apache Kafka, Apache Pulsar, and RabbitMQ: Which is the Fastest?},
@@ -70,31 +54,6 @@
 	note = {Accessed: 2020-11-12}
 }
 
-@inproceedings{karimov2018benchmarking,
-	title={Benchmarking distributed stream data processing systems},
-	author={Karimov, Jeyhun and Rabl, Tilmann and Katsifodimos, Asterios and Samarev, Roman and Heiskanen, Henri and Markl, Volker},
-	booktitle={2018 IEEE 34th International Conference on Data Engineering (ICDE)},
-	pages={1507--1518},
-	year={2018},
-	organization={IEEE}
-}
-@inproceedings{lopez2016performance,
-	title={A performance comparison of open-source stream processing platforms},
-	author={Lopez, Martin Andreoni and Lobato, Antonio Gonzalez Pastana and Duarte, Otto Carlos MB},
-	booktitle={2016 IEEE Global Communications Conference (GLOBECOM)},
-	pages={1--6},
-	year={2016},
-	organization={IEEE}
-}
-@article{isah2019survey,
-	title={A survey of distributed data stream processing frameworks},
-	author={Isah, Haruna and Abughofa, Tariq and Mahfuz, Sazia and Ajerla, Dharmitha and Zulkernine, Farhana and Khan, Shahzad},
-	journal={IEEE Access},
-	volume={7},
-	pages={154300--154316},
-	year={2019},
-	publisher={IEEE}
-}
 
 @misc{netflixpipeline,
 	title = {Evolution of the Netflix Data Pipeline},
@@ -126,29 +85,6 @@
 	note = {Accessed: 2020-11-18}
 }
 
-@inproceedings{al2018comparative,
-	title={A Comparative Review of Microservices and Monolithic Architectures},
-	author={Al-Debagy, Omar and Martinek, Peter},
-	booktitle={2018 IEEE 18th International Symposium on Computational Intelligence and Informatics (CINTI)},
-	pages={000149--000154},
-	year={2018},
-	organization={IEEE}
-}
-
-@misc{monolithfirst,
-	author = {Martin Fowler},
-	title = {MonolithFirst},
-	howpublished =  {\url{https://martinfowler.com/bliki/MonolithFirst.html}},
-	note = {Accessed: 2020-11-18}
-}
-
-
-@misc{monolith,
-	author = {Chris Richardson},
-	title = {Pattern: Monolithic Architecture},
-	howpublished =  {\url{https://microservices.io/patterns/monolithic.html}},
-	note = {Accessed: 2020-11-19}
-}
 
 @misc{microservices,
 	author = {Chris Richardson},
@@ -365,6 +301,23 @@
 }
 
 
+@misc{tls,
+	title = {Transport Layer Security},
+	howpublished =  {\url{https://en.wikipedia.org/wiki/Transport_Layer_Security}},
+	note = {Accessed: 2020-12-22}	
+}
+
+@misc{sasl,
+	title = {Simple Authentication and Security Layer},
+	howpublished =  {\url{https://en.wikipedia.org/wiki/Simple_Authentication_and_Security_Layer}},
+	note = {Accessed: 2020-12-22}	
+}
+
+
+
+
+
+
 %Kafka document references
 
 @misc{kafkaremovezookeeper,
@@ -566,6 +519,20 @@
 }
 
 
+@misc{kafkasecurity,
+	title = {Kafka Security},
+	howpublished =  {\url{https://kafka.apache.org/documentation/#security}},
+	note = {Accessed: 2020-12-12}	
+}
+
+@misc{zookeepersecurity,
+	title = {Client-Server mutual authentication},
+	author = {Rakesh Radhakrishnan},
+	howpublished =  {\url{https://cwiki.apache.org/confluence/display/ZOOKEEPER/Client-Server+mutual+authentication}},
+	note = {Accessed: 2020-12-22}	
+}
+
+
 
 
 
@@ -730,6 +697,13 @@
 	note = {Accessed: 2020-12-19}
 }
 
+@misc{pulsarsecurity,
+	title = {Pulsar security overview},
+	howpublished =  {\url{https://pulsar.apache.org/docs/en/security-overview/}},
+	note = {Accessed: 2020-12-23}
+}
+
+
 
 
 
@@ -812,6 +786,26 @@
 	title = {NATS Streaming: Partitioning},
 	howpublished =  {\url{https://docs.nats.io/nats-streaming-concepts/partitioning}},
 	note = {Accessed: 2020-12-19}
+}
+
+@misc{natssecurity,
+	title = {Securing NATS},
+	howpublished =  {\url{https://docs.nats.io/nats-server/configuration/securing_nats}},
+	note = {Accessed: 2020-12-23}
+}
+
+
+@misc{natstoreencryption,
+	title = {NATS Streaming: Store encryption},
+	howpublished =  {\url{https://docs.nats.io/nats-streaming-concepts/store-encryption}},
+	note = {Accessed: 2020-12-23}
+}
+
+
+@misc{natsauthorization,
+	title = {GitHub issue: NATS Streaming Client Authorization},
+	howpublished =  {\url{https://github.com/nats-io/nats-streaming-server/issues/788}},
+	note = {Accessed: 2020-12-23}
 }
 
 

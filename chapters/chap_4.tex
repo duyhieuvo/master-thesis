@@ -43,6 +43,7 @@ The current release 2.7.0 of Pulsar will be evaluated.
 
 \textbf{NATS Streaming}
 \begin{figure}[h]
+	\centering
 	\includegraphics[width=\linewidth]{images/general-nats.png}
 	\caption{General concept of NATS Streaming.}
 	\label{fig:pulsargeneral}
@@ -50,8 +51,8 @@ The current release 2.7.0 of Pulsar will be evaluated.
 
 NATS Streaming is an event streaming add-on built on top of NATS server which is a messaging system without persistent layer. It has some core concepts:
 \begin{itemize}
-	\item Message: a message published to NATS Streaming contains a value and some metadata.
-	\item NATS Streaming server: A NATS Streaming server comprises of a normal NATS server as the messaging layer and a streaming module to receive and persist message on NATS server to a pluggable durable storage. NATS Streaming comes with an embedded NATS server but can also be configured to work with an existing NATS server. A number of NATS Streaming servers can be grouped together into a cluster in two modes: clustering and fault tolerance. In the first mode, each server retains a full copy of all messages in a separated data store. In the latter mode, nodes in the cluster share a single data store.
+	\item Message: a message published to NATS Streaming contains a value and some metadata.	
+	\item NATS Streaming server: A NATS Streaming server comprises of a normal NATS server as the messaging layer and a a separated streaming module which is internally a normal NATS client to receive and persist message on NATS server to a pluggable durable storage.  Because of this special structure, the clients and streaming module only interacts indirectly via the intermediate NATS Server and all requests must first traverse through the NATS Server. NATS Streaming comes with an embedded NATS server but can also be configured to work with an existing NATS server. A number of NATS Streaming servers can be grouped together into a cluster in two modes: clustering and fault tolerance. In the first mode, each server retains a full copy of all messages in a separated data store. In the latter mode, nodes in the cluster share a single data store.
 	\item Channel: On NATS Streaming, messages are organized into channels which internally are made from append-only message logs. A message in a channel can uniquely be identified with an incremental sequence number.
 	\item NATS Streaming client: NATS streaming provides client API to publish and subscribe to messages on channels.  
 \end{itemize}
@@ -66,6 +67,6 @@ Moreover, each platform provides different implementations of its clients in dif
 \input{chapters/evaluation/data_integration}
 \input{chapters/evaluation/monitoring}
 \input{chapters/evaluation/scalability}
-%\input{chapters/evaluation/security}
+\input{chapters/evaluation/security}
 \input{chapters/evaluation/usability}
 \input{chapters/evaluation/performance}
