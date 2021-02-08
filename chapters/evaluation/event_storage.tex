@@ -3,9 +3,9 @@
 \normalsize
 \textbf{Durable storage}
 
-In Kafka, records are stored in partitions each of which is stored on the disk as a number of segment files \cite{kafkalog}. The broker receives records and writes them sequentially to these files. When a segment file reaches its configurable maximum size, a new file will be created for writing new records. Since all records are only appended to these files, the read/write of records only requires sequential I/O on the disk. This is one of the key design features of Kafka to help maintain fast performance even on cheap hard disks.  
+In Kafka, records are stored in partitions each of which is stored on the disk as a number of segment files \cite{kafkaimplementation}. The broker receives records and writes them sequentially to these files. When a segment file reaches its configurable maximum size, a new file will be created for writing new records. Since all records are only appended to these files, the read/write of records only requires sequential I/O on the disk. This is one of the key design features of Kafka to help maintain fast performance even on cheap hard disks.  
 
-However, a Kafka broker can already acknowledge writing requests when records are written to I/O buffer and not necessarily when records are persisted to disk. Therefore, durability is not guaranteed, and message loss can still happen when the broker fails before flushing records to disk. User can force disk flush to ensure durability whenever a message is received but this is not recommended by Kafka since it can reduce the throughput of the system \cite{kafkaflushmessage}. To achieve durability, a more common approach is combining this unflushed write feature with redundant write on other brokers in the cluster which is the fault-tolerance feature for storage provided by Kafka. This is elaborated in more detail in the next section.
+However, a Kafka broker can already acknowledge writing requests when records are written to I/O buffer and not necessarily when records are persisted to disk. Therefore, durability is not guaranteed, and message loss can still happen when the broker fails before flushing records to disk. User can force disk flush to ensure durability whenever a message is received but this is not recommended by Kafka since it can reduce the throughput of the system \cite{kafkaconfigurationtopic}. To achieve durability, a more common approach is combining this unflushed write feature with redundant write on other brokers in the cluster which is the fault-tolerance feature for storage provided by Kafka. This is elaborated in more detail in the next section.
 
 \textbf{Event storage is fault tolerant}\\
 As briefly mentioned in the general concept, there are two types of Kafka partitions, namely, leader and follower. The leader partition is active and can serve read/write requests from clients while followers are standby replicas of the leader. For fault tolerance, Kafka supports data replication among brokers in the cluster \cite{kafkadatareplication}. For each topic, user can specify a replication factor which determines the number of existing copies of records on Kafka.  When replication factor is 2 or more, every partition of the topic will have 1 leader and 1 or more followers. For each partition, each of its copies will be distributed on a different broker in the cluster. Therefore, there will be no single point of failure for record storage. The replication factor must be equal or smaller than the number of brokers in the Kafka cluster.
@@ -25,7 +25,7 @@ It could be possible that all followers of a partition are out-of-sync with the 
 Durability and fault tolerance of data storage on Kafka are closely related to each other and can only be achieved with the right configurations on both Kafka brokers and Kafka producers. In addition, Kafka provides many configuration options to give users the flexibility to choose different priorities for their systems such as availability, durability, latency. 
 
 \textbf{Flexible data retention policy}\\
-All records published to Kafka will be retained. Old data can be cleaned up with different cleanup policies \cite{kafkacleanuppolicy}. These policies can be configured on the broker level which will then be applied to all topics or they can be configured differently for individual topic. There are two basic strategies to retain data:
+All records published to Kafka will be retained. Old data can be cleaned up with different cleanup policies \cite{kafkaconfigurationtopic}. These policies can be configured on the broker level which will then be applied to all topics or they can be configured differently for individual topic. There are two basic strategies to retain data:
 \begin{itemize}
 	\item Delete: All records are retained for a period of time or based on a maximum size and then they will be deleted.
 	\item Compact: This strategy is only applicable to records with key values. The topic will be compacted. Only the latest record of each key value is retained.
@@ -36,7 +36,7 @@ For the first strategy, user can choose different retention policies for a parti
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=6.5cm,height=5.5cm]{images/compact-kafka.png}
-	\caption{Log compaction on Kafka (taken from Kafka documentation \cite{kafkadocumentation}).}
+	\caption{Log compaction on Kafka (taken from Kafka documentation \cite{kafkadesignlogcompact}.}
 	\label{fig:compactekafka}
 \end{figure}
 For the second strategy, the background cleaner thread of Kafka will regularly scan the segment files and keep only the latest record for each key value (Figure \ref{fig:compactekafka}). Therefore, this only works with records with non-empty key value. Writing request of record without a key to a topic configured with compact cleanup policy will be rejected.
@@ -66,7 +66,7 @@ Pulsar supports replication of messages of a topic on multiple Bookies for fault
 	\caption{Underlying storage layers of a Pulsar topic.}
 	\label{fig:pulsartopic}
 \end{figure}
-Although all these configuration options are from Bookkeeper which is used internally by Pulsar, Pulsar also allows users to configure them using its administrator tool to achieve the required level of fault tolerance in different use cases. When there are not enough Bookies to meet the configured ensemble size and quorum, writing request from clients will return an error. Moreover, whenever a Bookie node dies, fragment with records written on that node will not have enough Qw copies. In that case, if the auto recovery is enabled \cite{bookkeeperautoreco}, the Bookkeeper cluster can auto detect the failed node and replicate records on that Bookie to others to maintain Qw replicas for each record.  
+Although all these configuration options are from Bookkeeper which is used internally by Pulsar, Pulsar also allows users to configure them using its administrator tool to achieve the required level of fault tolerance in different use cases. When there are not enough Bookies to meet the configured ensemble size and quorum, writing request from clients will return an error. Moreover, whenever a Bookie node dies, fragment with records written on that node will not have enough Qw copies. In that case, if the auto recovery is enabled \cite{bookkeeperadmin}, the Bookkeeper cluster can auto detect the failed node and replicate records on that Bookie to others to maintain Qw replicas for each record.  
 
 \textbf{Flexible data retention policy}
 As briefly mentioned in the general concept, a Pulsar topic can be read using Pulsar consumer. Whenever a consumer receives and processes successfully a message, it needs to send an acknowledgement back to the Pulsar broker. Based on that, Pulsar has two kinds of messages:
@@ -90,7 +90,7 @@ The backlog quota set a size limit on allowed unacknowledged messages of a topic
 
 On the other hand, TTL option focus on saving the disk space. It set a living time for unacknowledged messages. When the time expires, messages will be auto acknowledged to be subject to delete. 
 
-Pulsar also provides the option for topic compaction \cite{pulsarcompact}. However, this is completely unrelated to saving disk space and in fact will increase the disk usage. In the compaction process, Pulsar will scan through the unacknowledged messages and make a new copy containing only latest message of each key value. Messages without key values will be overlooked by the compaction. This new compacted copy can be read by consumer when only latest values are relevant to speed up the processing.
+Pulsar also provides the option for topic compaction \cite{pulsarconceptcompact}. However, this is completely unrelated to saving disk space and in fact will increase the disk usage. In the compaction process, Pulsar will scan through the unacknowledged messages and make a new copy containing only latest message of each key value. Messages without key values will be overlooked by the compaction. This new compacted copy can be read by consumer when only latest values are relevant to speed up the processing.
 
 These retention policies are only relevant to Pulsar consumer with its acknowledgement mechanism. In case of Pulsar reader, it does not acknowledge the consumption of messages to Pulsar and therefore does not determine which messages will be retained or deleted.
 
@@ -100,7 +100,7 @@ In summary, by default, messages on Pulsar will be deleted after being consumed 
 \normalsize
 \textbf{Durable storage}
 
-NATS streaming provides a pluggable persistence layer for durable storage of messages \cite{natsstorage}. However, by default, persistence storage is disabled and NATS streaming server only stores messages in-memory. NATS Streaming must be explicit configured to use durable storage. 
+NATS streaming provides a pluggable persistence layer for durable storage of messages \cite{natsconfiguring}. However, by default, persistence storage is disabled and NATS streaming server only stores messages in-memory. NATS Streaming must be explicit configured to use durable storage. 
 
 There are currently two storage options supported out-of-the-box which are file store and relational database store which are referred as SQL store in the NATS document. With file store, messages are stored in files on the disk of the server or in a network filesystem (NFS) mounted on the server. A directory is created for each channel in which messages of that channel are stored in log files. On the other hand, with SQL store, messages are persisted as records in an external relational database. All messages published to NATS Streaming are persisted in a messages table and each of them is uniquely identified by the ID number of the channel to which it belongs and an incremental sequence number. With these two provided storage options, once the producer of a message receive acknowledgement from the server, it is guaranteed that the message is durably persisted. Moreover, NATS Streaming also provides a storage interface which can be self-implemented by user to connect NATS to a different data store. 
 
@@ -111,13 +111,13 @@ Fault tolerance of event store is provided out-of-the-box by NATS Streaming with
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=12cm,height=7cm]{images/ft-eventstorage-nats.png}
+	\includegraphics[width=10.5cm,height=7cm]{images/ft-eventstorage-nats.png}
 	\caption{Fault tolerance of event storage on NATS Streaming in clustering mode.}
 	\label{fig:natsftstorage}
 \end{figure}
 
 \textbf{Flexible data retention policy}\\
-If persistence storage is enabled, all messages published to NATS Streaming will be retained whether they are consumed or not. User can specify the maximum number of channels, maximum size or number of messages of a channel, maximum retained time of each message \cite{natsstoragelimit}.
+If persistence storage is enabled, all messages published to NATS Streaming will be retained whether they are consumed or not. User can specify the maximum number of channels, maximum size or number of messages of a channel, maximum retained time of each message \cite{natsconfiguring}.
 
 When the limits are exceeded, oldest messages will be deleted until the retained data falls below the maximum limitation. All of these policies can be set to unlimited to retain messages forever. However, there is no option to selectively retain messages on NATS Streaming server.
 
