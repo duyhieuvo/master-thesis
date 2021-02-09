@@ -2,11 +2,11 @@
 \large \textbf{Apache Kafka}\\
 \normalsize
 \textbf{Technical monitoring}\\
-Kafka supports monitoring on both the brokers and clients \cite{kafkamonitoring}. Kafka brokers use Dropwizard Metrics \cite{kafkamonitoringmetrics} to collect statistics about their current statuses and expose this information to users using Java Management Extension (JMX) \cite{java2006monitoring}. There are many useful metrics such as request rate, memory usage, connection status. Kafka clients and tools such as producer, consumer, Kafka stream processor and connector support monitoring by reporting numerous built-in metrics with JMX such as request rate, response rate from the server, network rate. 
+Kafka supports monitoring on both the brokers and clients \cite{kafkamonitoring}. Kafka brokers collect numerous metrics about their current statuses and expose this information to users using Java Management Extension (JMX) \cite{java2006monitoring}. There are many useful metrics such as request rate, memory usage, connection status. Kafka clients and tools such as producer, consumer, Kafka stream processor and connector support monitoring by reporting numerous built-in metrics with JMX such as request rate, response rate from the server, network rate. 
 
 The metrics exposed by JMX can be displayed and monitored using JMX-compliant tools such as jconsole, Prometheus with the JMX exporter. With this monitoring mechanism, Kafka gives users the flexibility to plug in the metrics into different monitoring systems without being tied to a specific tool. 
 
-Apart from relying on the built-in monitoring mechanism of Kafka, there are also many monitoring tools for Kafka health-check developed by third-party organizations which require only minimal setup and can be quickly started \cite{kafkamonitoringtools1} \cite{kafkamonitoringtools2}. For instance, there are Confluent Control Center, Lenses, Cluster Manager for Apache Kafka (CMAK) tool. Each tool has a different license and provides a different set of functionalities. Therefore, users have a wide selection of available tools to match their needs in different cases.
+Apart from relying on the built-in monitoring mechanism of Kafka, there are also many monitoring tools for Kafka health-check developed by third-party organizations which require only minimal setup and can be quickly started \cite{kafkamonitoringtools1}. Each tool has a different license and provides a different set of functionalities. Therefore, users have a wide selection of available tools to match their needs in different cases.
 
 \large \textbf{Apache Pulsar}\\
 \normalsize
@@ -21,7 +21,7 @@ In addition, Pulsar also provides an off-the-shelf and open-source tool named Pu
 \textbf{Technical monitoring}\\
 To support monitoring, a NATS Streaming server exposes statistics about its current status via an opened HTTP port \cite{natsmonitoring}. The metrics are returned to users in form of JSON. NATS Streaming also provides a Prometheus exporter to convert the metrics from the server monitoring port into Prometheus format to help users display and monitor the server more conveniently. 
 
-The metrics provided by the streaming server via the monitoring endpoints cover mostly information on the high level such as number of currently connected clients, number of channels, total messages received and persisted by the server, current consumption status of subscribers. Users can also keep track of the more detailed information such as memory and CPU usage, message throughput of the underlying NATS server of the streaming server via the same monitoring port \cite{natsmonitoring1}. 
+The metrics provided by the streaming server via the monitoring endpoints cover mostly information on the high level such as number of currently connected clients, number of channels, total messages received and persisted by the server, current consumption status of subscribers. Users can also keep track of the more detailed information such as memory and CPU usage, message throughput of the underlying NATS server of the streaming server via the same monitoring port \cite{normalnatsconfig}. 
 
 Although the supported metrics of NATS Streaming server are not as many as Apache Kafka or Apache Pulsar, they can still provide a generally good insight into the current status of the streaming server given the simplicity of NATS Streaming compared to the other two platforms.
 

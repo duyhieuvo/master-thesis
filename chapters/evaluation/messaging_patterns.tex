@@ -1,7 +1,7 @@
 \section{Messaging patterns}
 \large \textbf{Apache Kafka}\\
 \normalsize
-Records on a Kafka topic can be read using Kafka consumer \cite{kafkaconsumer}.  Each consumer belongs to one consumer group. A topic on Kafka can be simultaneously consumed by multiple consumer groups, each of which will receive all messages from that topic. 
+Records on a Kafka topic can be read using Kafka consumer \cite{kafkadesignconsumer}.  Each consumer belongs to one consumer group. A topic on Kafka can be simultaneously consumed by multiple consumer groups, each of which will receive all messages from that topic. 
  
 A consumer group can comprise of multiple consumers and each message on the subscribed topic will be delivered to only one of them. The important point is that the messages are not distributed randomly to consumers in the group. Instead, each partition of the topic is assigned to one consumer in the group. At any time, each partition will be assigned and read by only one consumer in the group. 
 
