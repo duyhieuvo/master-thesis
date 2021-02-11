@@ -1,11 +1,11 @@
 \chapter{Implementation of Highest Delivery Guarantee} \label{chap:implementation}
 As elaborated in section \ref{section:semantics}, Apache Kafka and Apache Pulsar can support exactly-once semantics as the highest guarantee while on NATS Streaming, only at-least-once delivery semantics can be achieved. In order to analyze in more detail how the platforms achieve their highest level of delivery guarantee, especially exactly-once semantics, a small use case is implemented on all three platforms. Apart from providing insights into the internal workflow of the platforms, this can also serve as a reference for realizing the delivery guarantee on the platforms in production. 
 \section{Overview}
-For the realization of delivery guarantee, a simple use case of banking transactions is used. Transactional activities of customers are recorded as events and published to the ESP platform. These raw events are transformed and the values of all transactions are aggregated to generate the current account balance for each user. The overview of the use case and the main components in the implementation are showed in figure \ref{fig:impusecase}.
+For the realization of delivery guarantee, a simple use case of banking transactions is used. Transactional activities of customers are recorded as events and published to the ESP platform. These raw events are transformed and the values of all transactions are aggregated to generate the current account balance for each user. The overview of event flow and the main components in the implementation is showed in figure \ref{fig:impusecase}.
 
 To simulate the incoming events from customers, an event generator is implemented. The generator reads events from a CSV file which is prepared in advanced with data of 1000 transactional events. The generator then publishes these events to an event stream named \emph{Raw event}. Moreover, the event generator also checkpoints the line number in the CSV file of the published event to another stream named \emph{Reading position} on the ESP platform. In this way, when the event generator restarts, it can retrieve this checkpoint and resume the reading on the source file at the right position. 
 
-To transform raw event, a stream processor is implemented. This component will ingest data from \emph{Raw event} stream, extract the transactional value based on the event type and publish this transformed event back into another stream \emph{Transformed event}. This component will rely on the built-in mechanism of the ESP platform to manage the reading position on the \emph{Raw event} stream.
+To transform raw event, a stream processor is implemented. This component will ingest data from \emph{Raw event} stream, extract and transform the transactional value based on the event type and publish this transformed event back into another stream \emph{Transformed event}. This component will rely on the built-in mechanism of the ESP platform to manage the reading position on the \emph{Raw event} stream.
 
 
 
@@ -26,7 +26,48 @@ With this setup, message duplication can be easily detected because any transact
 
  
 \subsection{Failure scenarios}
-All three components: event generator, stream processor, and view generator have the processing cycle of an event as read-modify-write. After writing the modified event, these components must update the reading position on the source system to continue to receive subsequent events when they are restarted. Failure before updating reading position can lead to message duplication. As a result, three failure scenarios are derived for three processing components where they are simulated to be crashed before being able to checkpoint the reading position on the data source. 
+All three components: event generator, stream processor, and view generator have the processing cycle of an event as read-modify-write. After writing the modified event, these components must update the reading position on the source system to continue to receive subsequent events when they are restarted. Failure before updating reading position can lead to message duplication. As a result, three failure scenarios, namely, \emph{event-generator-crash}, \emph{stream-processor-crash} and \emph{stream-aggregator-crash}, are derived for three processing components where they are simulated to be crashed before being able to checkpoint the reading position on the data source. 
 
-For Apache Kafka and Apache Pulsar, another failure scenario is setup. Kafka and Pulsar support using the consumer group pattern to read a partitioned topic with multiple concurrent consumer instances (section \ref{section:patterns}). In this case, users have the option to rely on the failover mechanism of the consumer group to automatically manage and assign partitions of the topic to consumer instances in the same group. However, this can lead to the case same messages are sent and buffered on two different consumer instances when the platform transfer ownership of a partition from one consumer to another.
+Kafka and Pulsar support using the consumer group pattern to read a partitioned topic with multiple concurrent consumer instances (section \ref{section:patterns}). In this case, users have the option to rely on the failover mechanism of the consumer group to automatically manage and assign partitions of the topic to consumer instances in the same group. However, this can lead to the case same messages are sent and buffered on two different consumer instances when the platform transfer ownership of a partition from one consumer to another. Therefore, for Apache Kafka and Apache Pulsar, another failure scenario called \emph{duplicated-consumer} is setup.
 
+On Kafka, whenever a consumer send a request for new messages from Kafka, it will be notified about partition reassignment event if there is any. In normal condition, when the partitions are redistributed among the consumers (e.g. when a new consumer joins the consumer group), before the consumer with newly assigned partition can pull new records from Kafka, it must wait for the previous owner of the partition to gracefully give up the ownership on the partition by committing the offset number of processed messages \cite{kafkaconsumerimplement}. Therefore, same messages will not be delivered to two different consumers in this case. 
+
+However, ownership on a partition can be revoked before the owning consumer is notified. This is the case when the consumer is stalled for some reason (e.g. garbage collection pause, some messages take longer to process than expected) and fails to send new messages pulling request within the permitted interval. In this case, the consumer will be removed from the group by Kafka and its partition will be reassigned to another consumer in the group. As a result, the messages whose offset numbers have not been committed by old consumer will be redelivered to the new one leading to message duplication on two instances (figure \ref{fig:kafkascenario}). 
+
+\begin{figure}[t!]
+	\begin{adjustwidth}{-2cm}{-2cm}
+	\centering
+
+	\begin{subfigure}[t]{0.49\linewidth}
+		\centering
+		\includegraphics[width=\linewidth]{images/kafka-duplicated-scenario.png}
+		\caption{Failure scenario \emph{duplicated-consumer} on Kafka when a partition is reassigned without notifying the previous owning consumer.}
+		\label{fig:kafkascenario}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.49\linewidth}
+		\centering
+		\includegraphics[width=\linewidth]{images/pulsar-duplicated-scenario.png}
+		\caption{Failure scenario \emph{duplicated-consumer} on Pulsar when a new consumer joins the failover subscription.}
+		\label{fig:pulsarscenario}
+	\end{subfigure}
+\end{adjustwidth}
+	\caption{Failure scenario \emph{duplicated-consumer} on Kafka and Pulsar.}
+	\label{fig:failurescenario}
+\end{figure}
+
+\iffalse
+\begin{figure}
+		\centering
+		\includegraphics[width=8cm,height=7.5cm]{images/kafka-duplicated-scenario.png}
+		\caption{Failure scenario \emph{duplicated-consumer} on Kafka when a partition is reassigned without notifying the previous owning consumer.}
+		\label{fig:kafkascenario}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=8cm,height=7.5cm]{images/pulsar-duplicated-scenario.png}
+	\caption{Failure scenario \emph{duplicated-consumer} on Pulsar when a new consumer joins the failover subscription.}
+	\label{fig:pulsarscenario}
+\end{figure}
+\fi
+The failure scenario \emph{duplicated-consumer} can also occur with Pulsar. When a consumer subscribe to a Pulsar topic, messages on all topic assigned to this consumer will be pushed to a local queue until it is full \cite{pulsarbinaryprotocol}. When the consumer has consumed and acknowledged half of the buffered messages, new messages will be delivered. However, when a new consumer joins the same failover subscription, Pulsar broker will assign some topic partitions to it for load balancing. In this case, if the old consumer has not processed and acknowledged all messages of the reassigned partition on its queue, these messages will be redelivered again to the new consumer which causes message duplication on the queue of two consumers. This scenario is illustrated in figure \ref{fig:pulsarscenario}.
