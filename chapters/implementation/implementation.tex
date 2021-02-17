@@ -2,6 +2,8 @@
 \subsection{Clients}
 The three main components are implemented with the low level Java client APIs of the platforms. Consumer clients of the platforms are used to subscribe and read messages on the streams while producer clients are used to publish messages to the platforms.
 
+\textbf{Event generator and Stream processor}
+
 \begin{figure}[ht!]
 	\begin{adjustwidth}{-1cm}{-1cm}
 	\centering
@@ -23,12 +25,50 @@ The three main components are implemented with the low level Java client APIs of
 
 Figures \ref{fig:implementeventgenerator} and \ref{fig:implementstreamprocessor} show the sequence diagrams of the event generator and the stream processor respectively. With Apache Kafka and Apache Pulsar, to achieve exactly-once semantics with these two components,  the two operations to publish events and update the reading position on the data source must be atomically combined with the transaction features of the two platforms. 
 
-Listing \ref{lst:kafkastreamprocessor} shows part of the source code of the stream processor for Kafka. 
+Listing \ref{lst:kafkastreamprocessor} shows part of the source code of the stream processor component for Kafka. The transaction, in which transformed events are published to \emph{transformed-event} topic and the offset numbers of consumed messages on \emph{raw-event} topic are committed to Kafka, is started on line 13 and committed on line 27. 
 
 \lstinputlisting[label={lst:kafkastreamprocessor},language=Java,caption={Kafka stream processor with the transaction feature.}]{chapters/implementation/KafkaStreamProcessor.java} 
 
+To ensure exactly-once semantics, Kafka has fencing mechanism in its transactions to prevent duplication of messages and notify users by throwing back exceptions. When there is two producer instances with the same ID trying to publish messages to Kafka, requests from older instance will be rejected by Kafka and a \emph{ProducerFencedException} will be returned to this instance. When a temporarily disconnected application is replaced by a newer instance and the old instance later reconnects, this could lead to two instances sending message simultaneously. This fencing mechanism helps prevent that scenario. 
+
+Fencing mechanism of Kafka also prevents messages duplication when partition reassignment occurs within a consumer group \cite{kafkatransctionscaleproducer}. When the offset number of source topic is committed in a transaction (as in line 23 in listing \ref{lst:kafkastreamprocessor}), the metadata of the consumer which is used to read the input message must also be sent to Kafka. When this offset committing request is accepted by Kafka, the partition to which the message belongs is locked by the consumer instance declared in the request. If partition reassignment is triggered after the lock is obtained, the new owner of the reassigned partition must wait until the ongoing transaction on the locked partition is either completed, aborted or timeout before it can pull new messages from Kafka. Moreover, Kafka ensures that a partition can only be locked by a consumer with up-to-date metadata. When a consumer is unaware of the latest partition reassignment, its metadata becomes obsolete and any offset committing requests with this consumer will be rejected by Kafka and a \emph{CommitFailedException} will be returned. Any stream processor instance with the consumer which is deemed disconnected by Kafka cannot publish any new message until its consumer rejoins the group and retrieves the latest metadata.
+
+The implementation of the event generator with Kafka transaction is fairly similar. However, since the event generator reads input data from the CSV file rather than a Kafka topic, it only publishes reading position as a normal message to Kafka in the same transaction instead of committing offset number as in the stream processor.
+
+For Apache Pulsar, listing \ref{lst:pulsarstreamprocessor} shows part of the source code for the stream processor with the transaction feature. 
+
 \lstinputlisting[label={lst:pulsarstreamprocessor},language=Java,caption={Pulsar stream processor with the transaction feature.}]{chapters/implementation/PulsarStreamProcessor.java} 
 
+In the transaction from line 17 to line 31, the transformed event and the acknowledgement of the corresponding raw event are sent to Pulsar as an atomic operation. Pulsar handles the case of partition reassignment within a consumer group quite differently from Kafka to ensure exactly-once semantics. When a consumer acknowledge the consumption of a message in a transaction, Pulsar locks this message for that specific consumer \cite{pulsartransaction} until the transaction is completed or aborted. If a message on a partition is locked before partition reassignment occurs, it will not be redelivered to the new owner of the partition. On the other hand, if rebalancing happens before an application instance acknowledges and obtains lock on a message, this message will be redelivered to the new owner of the partition and therefore simultaneously exists on the buffers of two different consumer instances. In this case, the first application instance to finish processing and acknowledge will obtain the lock and cause the other instance to back off with a \emph{TransactionConflictException} when it tries to acknowledge the same message. As a result, exactly-once semantics can still be guaranteed.
+
+The transaction in Pulsar event generator is implemented similarly. Instead of acknowledging message on the source topic, the event generator update the reading position by publishing the line number of published event in the CSV file in the same transaction. 
+
+With NATS Streaming, atomically publishing and acknowledging the consumption of multiple messages is not supported. Therefore, the event generator and stream processor are implemented according to the sequence diagrams in figures \ref{fig:implementeventgenerator} and \ref{fig:implementstreamprocessor} without any special remark.
+
+\textbf{View generator}
+
+Regarding the view generator component, the implementations on all three platforms are fairly similar. To interact with the relational database and map Java object to relational table, the OpenJPA which is an implementation of Java Persistence API (JPA) \cite{jpa} is used. Two entities, namely, \emph{CurrentBalance} and \emph{CurrentReadingPosition} (listings \ref{lst:currentbalance} and \ref{lst:currentreadingposition}), representing the snapshot of current balances and reading position on the source stream respectively are defined and mapped to two corresponding tables on the PostgreSQL database.   
+\newpage
+
+\lstinputlisting[label={lst:currentbalance},language=Java,caption={Current balance entity.}]{chapters/implementation/CurrentBalance.java} 
+
+In the current balance entity, apart from the customer ID and the current balance of the corresponding customer, there is an additional field which indicates the source partition to which events from this customer is published. This field is applicable in case of Kafka and Pulsar where multiple view generator instances can consume the \emph{transformed-event} topic concurrently. When an application instance is assigned a partition, it must use this source partition field to retrieve the latest snapshots of current balances of all customers on this partition. In case of NATS Streaming, topic cannot be partitioned and therefore this field will simply be assigned a default value. 
+
+
+\lstinputlisting[label={lst:currentreadingposition},language=Java,caption={Current reading position entity.}]{chapters/implementation/CurrentReadingPosition.java} 
+For the current reading position entity, each partition on the source topic will be mapped to a row in the database table and is uniquely identified by the partition number. In case of NATS Streaming, there is only one row with the default partition number. 
+
+
+Figure \ref{fig:implementviewgenerator} illustrates the overall workflow of the view generator component.
+\newpage
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\linewidth]{images/implement-view-generator.png}
+	\caption{Sequence diagram of view generator component.}
+	\label{fig:implementviewgenerator}
+\end{figure}
+
+The two operations to persist snapshot of current balances and corresponding reading position are conducted in a transaction to ensure the atomicity and guarantee exactly-once semantics in case the view generator crashes in the middle on a transaction.
 
 \subsection{Failure injection}
 
