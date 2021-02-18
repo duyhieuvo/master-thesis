@@ -48,7 +48,6 @@ With NATS Streaming, atomically publishing and acknowledging the consumption of 
 \textbf{View generator}
 
 Regarding the view generator component, the implementations on all three platforms are fairly similar. To interact with the relational database and map Java object to relational table, the OpenJPA which is an implementation of Java Persistence API (JPA) \cite{jpa} is used. Two entities, namely, \emph{CurrentBalance} and \emph{CurrentReadingPosition} (listings \ref{lst:currentbalance} and \ref{lst:currentreadingposition}), representing the snapshot of current balances and reading position on the source stream respectively are defined and mapped to two corresponding tables on the PostgreSQL database.   
-\newpage
 
 \lstinputlisting[label={lst:currentbalance},language=Java,caption={Current balance entity.}]{chapters/implementation/CurrentBalance.java} 
 
@@ -60,10 +59,10 @@ For the current reading position entity, each partition on the source topic will
 
 
 Figure \ref{fig:implementviewgenerator} illustrates the overall workflow of the view generator component.
-\newpage
+
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=\linewidth]{images/implement-view-generator.png}
+	\includegraphics[width=\linewidth,height=12.6cm]{images/implement-view-generator.png}
 	\caption{Sequence diagram of view generator component.}
 	\label{fig:implementviewgenerator}
 \end{figure}
@@ -71,6 +70,11 @@ Figure \ref{fig:implementviewgenerator} illustrates the overall workflow of the 
 The two operations to persist snapshot of current balances and corresponding reading position are conducted in a transaction to ensure the atomicity and guarantee exactly-once semantics in case the view generator crashes in the middle on a transaction.
 
 \subsection{Failure injection}
+To provoke failure scenarios on the processing components, custom codes are injected into the the application at runtime using Byteman tracing tool for Java \cite{byteman}. With this tool, Byteman rule can be defined to inject arbitrary code into a running application when a condition is met. 
+
+\lstinputlisting[label={lst:bytemanrule},language=Java,caption={Example of the Byteman rule for event-generator-crash scenario on Kafka.}]{chapters/implementation/byteman.btm} 
+
+In the example in listing \ref{lst:bytemanrule}, a Byteman rule is define to inject failure during runtime into the event generator component of Kafka. The location to which custom code is injected is defined from line 2 to 4. More specifically, when the method \emph{bytemanHook} in the class \emph{KafkaEventsGenerator} is executed, the condition defined on line 6 is checked. In this case, the 
 
 \subsection{Running environment}
 To run the failure scenarios with each platform, Docker compose is used to containerize all components and run them locally in a Docker environment. 

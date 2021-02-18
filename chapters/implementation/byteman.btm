@@ -1,0 +1,8 @@
+RULE Fault injection to the event generator, simulate application crash during a transaction to publish event and the corresponding reading position on source CSV file.
+CLASS kafka.clients.KafkaEventsGenerator
+METHOD bytemanHook(int)
+AT ENTRY
+BIND counter = $1
+IF counter >= 120
+DO debug("Simulate application crash after publishing 120 events or more"), killJVM()
+ENDRULE

@@ -1,0 +1,12 @@
+\section{Result and discussion}
+\begin{table}[h]
+	\centering
+	\begin{tabular}{|l|l|l|l|}
+		\hline
+		& Apache Kafka & Apache Pulsar & NATS Streaming \\ \hline
+		\textit{event-generator-crash}  & Exactly-once & Exactly-once  & At-least-once  \\ \hline
+		\textit{stream-processor-crash} & Exactly-once & Exactly-once  & At-least-once  \\ \hline
+		\textit{view-generator-crash}   & Exactly-once & Exactly-once  & Exactly-once   \\ \hline
+		\textit{duplicated-consumer}    & Exactly-once & Exactly-once  & Not applicable \\ \hline
+	\end{tabular}
+\end{table}

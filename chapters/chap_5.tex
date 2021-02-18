@@ -28,13 +28,22 @@ With this setup, message duplication can be easily detected because any transact
 \subsection{Failure scenarios}
 To focus on the components which interact directly with the platform, the source CSV file with events data and the relational database is assumed to be reliable with no failure. Failure scenarios will only be derived for three components: event generator, stream processor, and view generator.
 
-These components all have the processing cycle of an event as read-modify-write. After writing the modified event, these components must update the reading position on the source system to continue to receive subsequent events when they are restarted. Failure before updating reading position can lead to message duplication. As a result, three failure scenarios, namely, \emph{event-generator-crash}, \emph{stream-processor-crash} and \emph{stream-aggregator-crash}, are derived for three processing components where they are simulated to be crashed before being able to checkpoint the reading position on the data source. 
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=7cm,height=7cm]{images/reading-position-fail.png}
+	\caption{Failure scenarios \emph{event-generator-crash}, \emph{stream-processor-crash} and \emph{stream-aggregator-crash}.}
+	\label{fig:scenarioreadingposition}
+\end{figure}
+
+These components all have the processing cycle of an event as read-modify-write. After writing the modified event, these components must successfully update the reading position on the source system. Otherwise, failure when updating reading position can lead to the case where the last processed message will be redelivered and reprocessed when the application restarts. Three failure scenarios, namely, \emph{event-generator-crash}, \emph{stream-processor-crash} and \emph{stream-aggregator-crash}, are derived for three processing components. In each failure scenario, one processing component along the processing pipeline is deliberately terminated before it can checkpoint the reading position on the data source to simulate the application crash (figure \ref{fig:scenarioreadingposition}).
+
+
 
 Kafka and Pulsar support using the consumer group pattern to read a partitioned topic with multiple concurrent consumer instances (section \ref{section:patterns}). In this case, users have the option to rely on the failover mechanism of the consumer group to automatically manage and assign partitions of the topic to consumer instances in the same group. However, this can lead to the case same messages are sent and buffered on two different consumer instances when the platform transfer ownership of a partition from one consumer to another. Therefore, for Apache Kafka and Apache Pulsar, another failure scenario called \emph{duplicated-consumer} is setup.
 
-On Kafka, whenever a consumer send a request for new messages from Kafka, it will be notified about partition reassignment event if there is any. In normal condition, when the partitions are redistributed among the consumers (e.g. when a new consumer joins the consumer group), before the new consumer is notified about its newly assigned partition, the previous owner of the partition always has the chance to gracefully give up the ownership on the partition by committing the offset number of processed messages \cite{kafkaconsumerimplement}. Kafka handles the coordination of this transition process transparently to users. Therefore, same messages will not be delivered to two different consumers in this case. 
+On Kafka, whenever a consumer send a pulling request for new messages from Kafka, it will be notified about partition reassignment event if there is any. In normal condition, when the partitions are redistributed among the consumers (e.g. when a new consumer joins the consumer group), before the new consumer is notified about its newly assigned partition, the previous owner of the partition always has the chance to gracefully give up the ownership on the partition by committing the offset number of processed messages \cite{kafkaconsumerimplement}. Kafka handles the coordination of this transition process transparently to users. Therefore, same messages will not be delivered to two different consumers in this case. 
 
-However, ownership on a partition can be revoked before the owning consumer is notified. This is the case when the consumer is stalled for some reason (e.g. garbage collection pause, some messages take longer to process than expected) and fails to send new messages pulling request within the permitted interval. In this case, the consumer will be removed from the group by Kafka and its partition will be reassigned to another consumer in the group. As a result, the messages whose offset numbers have not been committed by old consumer will be redelivered to the new one leading to message duplication on two instances (figure \ref{fig:kafkascenario}). 
+However, ownership on a partition can be revoked before the owning consumer is notified. This is the case when the consumer is stalled for some reason (e.g. garbage collection pause, some messages take longer to process than expected) and fails to send new messages pulling request within the permitted interval. In this case, the consumer will be removed from the group by Kafka and its partition will be reassigned to another consumer in the group. As a result, the messages whose offset numbers have not been committed by old consumer will be redelivered to the new one leading to message duplication on two instances. This scenario can be simulated by simply pausing a consumer instance in the consumer group after it has pulled a new batch of messages and before it starts to process and commit offset for these messages until Kafka deems this consumer to be disconnected (figure \ref{fig:kafkascenario}). 
 
 \begin{figure}[t!]
 	\begin{adjustwidth}{-2cm}{-2cm}
@@ -57,22 +66,7 @@ However, ownership on a partition can be revoked before the owning consumer is n
 	\label{fig:failurescenario}
 \end{figure}
 
-\iffalse
-\begin{figure}
-		\centering
-		\includegraphics[width=8cm,height=7.5cm]{images/kafka-duplicated-scenario.png}
-		\caption{Failure scenario \emph{duplicated-consumer} on Kafka when a partition is reassigned without notifying the previous owning consumer.}
-		\label{fig:kafkascenario}
-\end{figure}
-
-\begin{figure}
-	\centering
-	\includegraphics[width=8cm,height=7.5cm]{images/pulsar-duplicated-scenario.png}
-	\caption{Failure scenario \emph{duplicated-consumer} on Pulsar when a new consumer joins the failover subscription.}
-	\label{fig:pulsarscenario}
-\end{figure}
-\fi
-The failure scenario \emph{duplicated-consumer} can also occur with Pulsar. When a consumer subscribe to a Pulsar topic, messages on all topic assigned to this consumer will be pushed to a local queue until it is full \cite{pulsarbinaryprotocol}. When the consumer has consumed and acknowledged half of the buffered messages, new messages will be delivered. However, when a new consumer joins the same failover subscription, Pulsar broker will assign some topic partitions to it for load balancing. In this case, if the old consumer has not processed and acknowledged all messages of the reassigned partition on its queue, these messages will be redelivered again to the new consumer which causes message duplication on the queue of two consumers. This scenario is illustrated in figure \ref{fig:pulsarscenario}.
+The failure scenario \emph{duplicated-consumer} can also occur with Pulsar. When a consumer subscribe to a Pulsar topic, messages on all topic assigned to this consumer will be pushed to a local queue until it is full \cite{pulsarbinaryprotocol}. When the consumer has consumed and acknowledged half of the buffered messages, new messages will be delivered. When a new consumer joins the same failover subscription, Pulsar broker will assign some topic partitions to it for load balancing. In this case, if the old consumer has not processed and acknowledged all messages of the reassigned partition on its queue, these messages will be redelivered again to the new consumer which causes message duplication on the queue of two consumers. This scenario can be provoked by introduced a small delay into the first consumer instance before it can start to process the messages on its local queue to give the second consumer instance enough time to join the subscription and receive the unprocessed messages again. This is illustrated in figure \ref{fig:pulsarscenario}.
 
 \input{chapters/implementation/implementation}
 \input{chapters/implementation/result}
