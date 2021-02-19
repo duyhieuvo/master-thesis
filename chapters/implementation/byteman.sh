@@ -1,0 +1,1 @@
+java -javaagent:./byteman.jar=script:./byteman_streamprocessor.btm -jar kafkaClient.jar

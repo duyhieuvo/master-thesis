@@ -14,17 +14,19 @@ public class PulsarStreamProcessor {
                 String transformedEvent = processRawEvent(message);
 
                 //Create a transaction 
-                Transaction txn = client
-                        .newTransaction()
-                        .withTransactionTimeout(5, TimeUnit.MINUTES)
-                        .build()
-                        .get();
+                Transaction txn = client.newTransaction()
+                                        .withTransactionTimeout(5, TimeUnit.MINUTES)
+                                        .build()
+                                        .get();
 
                 //Publish the transformed event to 'transformed-event' topic
                 producer.newMessage(txn)
-                         .key(customerId)
-                         .value(objectMapper.writeValueAsString(transformedRecord))
-                         .send();
+                        .key(customerId)
+                        .value(objectMapper.writeValueAsString(transformedRecord))
+                        .send();
+
+                //Add the hook here to inject custom code during runtime to simulate the application crash
+                bytemanHook(counter);						 
 
                 //Acknowledge the consumption of message on 'raw-event' topic
                 consumer.acknowledgeAsync(message.getMessageId(),txn);

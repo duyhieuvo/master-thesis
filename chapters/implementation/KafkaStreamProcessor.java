@@ -5,8 +5,7 @@ public class KafkaStreamProcessor {
 	public void transformRawEvent(){
 		while(true) {
 			//Pull a new batch of messages from Kafka
-			ConsumerRecords<String, String> consumerRecords 
-				= consumer.poll(Duration.ofSeconds(10));
+			ConsumerRecords<String, String> consumerRecords	= consumer.poll(Duration.ofSeconds(10));
 			//..
 			try{
 				//Begin the transaction
@@ -18,6 +17,9 @@ public class KafkaStreamProcessor {
 					//Send transformed event to 'transformed-event' topic
 					RecordMetadata recordMetadata=producer.send(producerRecord).get();
 				}
+				
+				//Add the hook here to inject custom code during runtime to simulate the application crash
+				bytemanHook(counter);
 			
 				//Update the offset on the source topic 'raw-event' in the same transaction
 				producer.sendOffsetsToTransaction(getOffsetToCommitOnSourceTopic(consumerRecords),

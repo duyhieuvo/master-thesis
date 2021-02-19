@@ -25,8 +25,8 @@ Finally at the end of the event streams pipeline, the view generator component w
 With this setup, message duplication can be easily detected because any transactional event which is processed more than once by any of the three processing components will result in different final current balances. To verify that the configuration and implementation is correct on each platform to achieve the highest message delivery guarantee, different failure scenarios are setup. The final current balances in these scenarios will be verified against the result from a scenario without failure.
 
  
-\subsection{Failure scenarios}
-To focus on the components which interact directly with the platform, the source CSV file with events data and the relational database is assumed to be reliable with no failure. Failure scenarios will only be derived for three components: event generator, stream processor, and view generator.
+\subsection{Failure scenarios}  \label{subsection:failurescenarios}
+To focus on the components which interact directly with the platform, the source CSV file with events data and the relational database is assumed to be reliable with no failure. Moreover, the platforms are configured to be fault-tolerant with redundancies and assumed to be resilient to failures.  Failure scenarios will only be derived for three components: event generator, stream processor, and view generator.
 
 \begin{figure}[h]
 	\centering

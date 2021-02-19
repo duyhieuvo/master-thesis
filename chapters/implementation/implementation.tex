@@ -59,10 +59,10 @@ For the current reading position entity, each partition on the source topic will
 
 
 Figure \ref{fig:implementviewgenerator} illustrates the overall workflow of the view generator component.
-
+\newpage
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=\linewidth,height=12.6cm]{images/implement-view-generator.png}
+	\includegraphics[width=\linewidth]{images/implement-view-generator.png}
 	\caption{Sequence diagram of view generator component.}
 	\label{fig:implementviewgenerator}
 \end{figure}
@@ -70,11 +70,31 @@ Figure \ref{fig:implementviewgenerator} illustrates the overall workflow of the 
 The two operations to persist snapshot of current balances and corresponding reading position are conducted in a transaction to ensure the atomicity and guarantee exactly-once semantics in case the view generator crashes in the middle on a transaction.
 
 \subsection{Failure injection}
-To provoke failure scenarios on the processing components, custom codes are injected into the the application at runtime using Byteman tracing tool for Java \cite{byteman}. With this tool, Byteman rule can be defined to inject arbitrary code into a running application when a condition is met. 
+To provoke failure scenarios described in section \ref{subsection:failurescenarios}, custom codes are injected into the the application at runtime to pause or terminate the program using Byteman tracing tool for Java \cite{byteman}. With this tool, Byteman rule can be defined to inject arbitrary code into a running application when a condition is met. A Byteman rule contains of three main parts: 
+\begin{itemize}
+	\item Event: this triggers the rule
+	\item Condition: this part checks the current status of the running application
+	\item Action: this part defines the alternative behavior of the application if the condition is satisfied
+\end{itemize}
 
-\lstinputlisting[label={lst:bytemanrule},language=Java,caption={Example of the Byteman rule for event-generator-crash scenario on Kafka.}]{chapters/implementation/byteman.btm} 
 
-In the example in listing \ref{lst:bytemanrule}, a Byteman rule is define to inject failure during runtime into the event generator component of Kafka. The location to which custom code is injected is defined from line 2 to 4. More specifically, when the method \emph{bytemanHook} in the class \emph{KafkaEventsGenerator} is executed, the condition defined on line 6 is checked. In this case, the 
+\lstinputlisting[label={lst:bytemanrule},language=Java,caption={Byteman rule script for stream-processor-crash scenario on Kafka.}]{chapters/implementation/byteman.btm} 
+
+In the example in listing \ref{lst:bytemanrule} is the Byteman rule to inject failure during runtime into the stream processor component of Kafka. The event is defined from line 2 to 4. When the method \emph{bytemanHook} in the class \emph{KafkaStreamProcessor} is executed, the rule is invoked. The \emph{bytemanHook} is a predefined helper method to provide a convenient way to specify the injecting position in the class without having to modify much in the application code. In the stream processor class of Kafka (listing \ref{lst:kafkastreamprocessor}), this method is placed between the operations to publish transformed events and commit offset of processed raw events. The \emph{bytemanHook} method does nothing and accepts as parameter a counter variable indicating the number of messages which have been processed by the processor since started. This counter is used in the condition of the Byteman rules online 6, namely, when the stream processor has processed and published successfully more than 120 messages, the action defined on line 7 which intentionally terminate the application is executed.
+
+Different rules corresponding to different failure scenarios on each processing components are defined similarly for all three platforms. To execute the application with defined Byteman rule, the Java virtual machine (JVM) must be configured to load and run the executable jar file of the Byteman engine when the application is executed. In addition, the script of the rule to be executed must be specified as well.
+
+\lstinputlisting[label={lst:bytemanruleexecute},keywordstyle={\color{blue}},language=bash,caption={Execute the stream processor of Kafka with the Byteman rule.}]{chapters/implementation/byteman.sh} 
 
 \subsection{Running environment}
-To run the failure scenarios with each platform, Docker compose is used to containerize all components and run them locally in a Docker environment. 
+To run and test the implemented processing components against the failure scenarios, the executable files of them are containerized and put in the same Docker compose environment along with th
+To run the failure scenarios with each platform, Docker compose is used to containerize all components and run them locally in a Docker environment \cite{docker}. 
+
+Regarding the platforms, while Apache Pulsar and NATS Streaming have official Docker images, Apache Kafka is not released with a Docker image. Nevertheless, there are a number of Kafka Docker images provided by third-party organizations. In the thesis, the Kafka Docker image from the company Confluent is used as it is regularly updated.
+
+A Docker compose file is prepared for each platform. In each file, the Docker services for required infrastructure and applications are defined.
+\begin{itemize}
+	\item Infrastructure: the ESP platform in fault-tolerant configuration and the PostgreSQL relational database.
+	\item Applications: three processing components: event generator, stream processor and view generator along with their corresponding failure-injected.
+\end{itemize}
+ 
