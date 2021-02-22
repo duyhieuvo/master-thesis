@@ -22,7 +22,7 @@ To transform raw event, a stream processor is implemented. This component will i
 Finally at the end of the event streams pipeline, the view generator component will accumulate the transactional values of each user and persist the resulted current balance to a PostgreSQL relational database. In addition, the view generator also commit the corresponding reading position on the source stream \emph{transformed-event} to the database so that it can fetch this value and resume the consumption on the stream accordingly upon restarting.
 
 
-With this setup, message duplication can be easily detected because any transactional event which is processed more than once by any of the three processing components will result in different final current balances. To verify that the configuration and implementation is correct on each platform to achieve the highest message delivery guarantee, different failure scenarios are setup. The final current balances in these scenarios will be verified against the result from a scenario without failure.
+With this setup, message duplication can be easily detected because any transactional event which is processed more than once by any of the three processing components will result in different final current balances. To verify that the configuration and implementation is correct on each platform to achieve the highest message delivery guarantee, different failure scenarios are setup. The final current balances in these scenarios will be verified against the result from the reference scenario without failure.
 
  
 \subsection{Failure scenarios}  \label{subsection:failurescenarios}
@@ -35,7 +35,7 @@ To focus on the components which interact directly with the platform, the source
 	\label{fig:scenarioreadingposition}
 \end{figure}
 
-These components all have the processing cycle of an event as read-modify-write. After writing the modified event, these components must successfully update the reading position on the source system. Otherwise, failure when updating reading position can lead to the case where the last processed message will be redelivered and reprocessed when the application restarts. Three failure scenarios, namely, \emph{event-generator-crash}, \emph{stream-processor-crash} and \emph{stream-aggregator-crash}, are derived for three processing components. In each failure scenario, one processing component along the processing pipeline is deliberately terminated before it can checkpoint the reading position on the data source to simulate the application crash (figure \ref{fig:scenarioreadingposition}).
+These components all have the processing cycle of an event as read-modify-write. After writing the modified event, these components must successfully update the reading position on the source system. Otherwise, failure when updating reading position can lead to the case where the last processed message will be redelivered and reprocessed when the application restarts. Three failure scenarios, namely, \emph{event-generator-crash}, \emph{stream-processor-crash} and \emph{stream-aggregator-crash}, are derived for three processing components. In each failure scenario, one processing component along the processing pipeline is deliberately terminated before it can checkpoint the reading position on the data source to simulate the application crash (figure \ref{fig:scenarioreadingposition}). After that, the processing component will be restarted to continue with its incomplete task.
 
 
 
@@ -67,6 +67,24 @@ However, ownership on a partition can be revoked before the owning consumer is n
 \end{figure}
 
 The failure scenario \emph{duplicated-consumer} can also occur with Pulsar. When a consumer subscribe to a Pulsar topic, messages on all topic assigned to this consumer will be pushed to a local queue until it is full \cite{pulsarbinaryprotocol}. When the consumer has consumed and acknowledged half of the buffered messages, new messages will be delivered. When a new consumer joins the same failover subscription, Pulsar broker will assign some topic partitions to it for load balancing. In this case, if the old consumer has not processed and acknowledged all messages of the reassigned partition on its queue, these messages will be redelivered again to the new consumer which causes message duplication on the queue of two consumers. This scenario can be provoked by introduced a small delay into the first consumer instance before it can start to process the messages on its local queue to give the second consumer instance enough time to join the subscription and receive the unprocessed messages again. This is illustrated in figure \ref{fig:pulsarscenario}.
+
+The \emph{duplicated-consumer} scenario will be realized on the stream processor component where the consuming and producing of messages are done within the protection scope of the platform. For the view generator component which reads input from the ESP platform and writes output data to an external data sink, in order to have exactly-once semantics with this scenario, the gap between the platform and the data sink varies and must be bridged differently with different types of external system.
+
+\begin{table}[]
+	\begin{adjustwidth}{-1cm}{}
+	\centering
+	\begin{tabular}{|l|l|l|l|}
+		\hline
+		& Event generator                                                          & Stream processor                                                                                                                        & View generator                                                           \\ \hline
+		\textit{event-generator-crash}  & \begin{tabular}[t]{@{}l@{}}one instance\\ crash and restart\end{tabular} & \begin{tabular}[t]{@{}l@{}}one instance \\ no failure\end{tabular}                                                                      & \begin{tabular}[t]{@{}l@{}}one instance\\ no failure\end{tabular}        \\ \hline
+		\textit{stream-processor-crash} & \begin{tabular}[t]{@{}l@{}}one instance\\ no failure\end{tabular}        & \begin{tabular}[t]{@{}l@{}}one instance\\ crash and restart\end{tabular}                                                                & \begin{tabular}[t]{@{}l@{}}one instance\\ no failure\end{tabular}        \\ \hline
+		\textit{view-generator-crash}   & \begin{tabular}[t]{@{}l@{}}one instance\\ no failure\end{tabular}        & \begin{tabular}[t]{@{}l@{}}one instance\\ no failure\end{tabular}                                                                       & \begin{tabular}[t]{@{}l@{}}one instance\\ crash and restart\end{tabular} \\ \hline
+		\textit{\begin{tabular}[t]{@{}l@{}}duplicated-consumer\\ (Kafka and Pulsar only)\end{tabular}}   & \begin{tabular}[t]{@{}l@{}}one instance\\ no failure\end{tabular}        & \begin{tabular}[t]{@{}l@{}}two instances \\ first instance: is delayed\\ second instance: no failure \end{tabular} & \begin{tabular}[t]{@{}l@{}}one instance\\ no failure\end{tabular}        \\ \hline
+	\end{tabular}
+	\label{fig:failurescenariostable}
+	\end{adjustwidth}
+	\caption{Summary of 4 failure scenarios.}
+\end{table}
 
 \input{chapters/implementation/implementation}
 \input{chapters/implementation/result}
