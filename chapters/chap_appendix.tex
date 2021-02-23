@@ -1,2 +1,24 @@
-\chapter{Java Code} \label{chap:javacode}
+\newenvironment{rotatepage}%
+{\clearpage\pagebreak[4]\global\pdfpageattr\expandafter{\the\pdfpageattr/Rotate 90}}%
+{\clearpage\pagebreak[4]\global\pdfpageattr\expandafter{\the\pdfpageattr/Rotate 0}}%
+
+\begin{appendices}
+\chapter{Feature matrix}
+\newpage
+\begin{rotatepage} 
+\begin{landscape}	
+
+
+\begin{table}[h]
+	\begin{adjustwidth}{-5cm}{}
+	\centering
+	\includegraphics{images/feature-matrix-3}
+	\end{adjustwidth}
+	\caption{Preliminary evaluation of 5 open-source ESP platforms.}
+	\label{table:featurematrix1}
+\end{table}
+
+\end{landscape}
+\end{rotatepage}
+\end{appendices}
 

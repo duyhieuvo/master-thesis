@@ -10,7 +10,7 @@ The results from running the failure scenarios on the three platforms are summar
 		\textit{view-generator-crash}   & Exactly-once & Exactly-once  & Exactly-once   \\ \hline
 		\textit{duplicated-consumer}    & Exactly-once & Exactly-once  & Not applicable \\ \hline
 	\end{tabular}
-	\caption{Summary of 4 failure scenarios.}
+	\caption{Achieved delivery guarantees on the platforms in 4 failure scenarios.}
 	\label{fig:failurescenariosresult}
 \end{table}
 
@@ -40,4 +40,6 @@ Moreover, this mechanism of Pulsar to let consumers race to lock messages when t
 The problem of out-of-order processing is well prevented on Kafka. When a consumer in the consumer group commits the offset number of a message in a transaction, the entire partition to which the message belongs is locked and any other consumer in the same group cannot fetch new messages from this partition even when it is assigned as the new owner of the partition. Only when the ongoing transaction is either completed or aborted, new owner of the partition can start to pull new messages. On the old owner of the partition, after the ongoing transaction is finished, if there is any buffered message left from the last pull request, this application instance cannot continue to commit offset numbers for them because it now has the outdated metadata of the consumer group before the partitions reassignment. When this instance sends a new pulling requests to Kafka, it receives the latest metadata as well as only messages on the partition which it is currently assigned.
 
 Therefore, at any time, only one consumer in a Kafka consumer group can process and commit offset numbers of messages on a partition. This mechanism of Kafka compromises the latency and availability to ensure the consistency when partition reassignment occurs. Moreover, all low-level implementation of transactions with Kafka producers and consumers as in this thesis is provided out-of-the-box with the Kafka Streams library. Users can utilize this library to focus only on the processing logic while still being able to achieve exactly-once semantics on Kafka with minimum configuration.
+
+
 

@@ -17,8 +17,6 @@ Moreover, in the tests of Apache Pulsar and Apache Kafka, the topic is partition
 
 \begin{table}[h]
 	\centering
-	\caption{Benchmarking results of Kafka, Pulsar and NATS Streaming \cite{benchmarkfull}.}
-	\label{table:performance}
 	\begin{adjustwidth}{-1cm}{}
 	\begin{tabular}{|l|l|l|l|l|l|l|l|}
 		\hline
@@ -28,6 +26,8 @@ Moreover, in the tests of Apache Pulsar and Apache Kafka, the topic is partition
 		\begin{tabular}[c]{@{}l@{}}NATS\\ Streaming\end{tabular} & \begin{tabular}[c]{@{}l@{}}Not\\ applicable\end{tabular} & 25                                                      & 8                                                       & 16                                                       & 26 699                                                                     & 26 696                                                                     & 148                                                                 \\ \hline
 	\end{tabular}
  \end{adjustwidth}
+ \caption{Benchmarking results of Kafka, Pulsar and NATS Streaming \cite{benchmarkfull}.}
+\label{table:performance}
 \end{table}
 \iffalse
 \begin{table}[h]
@@ -47,4 +47,4 @@ Moreover, in the tests of Apache Pulsar and Apache Kafka, the topic is partition
 \fi
 With the same number of sending and receiving threads, Apache Kafka is outstanding with the throughput of approximately 270 000 messages per second and the 95th percentile value of latency around 48 milliseconds. Next is Apache Pulsar with the throughput of roughly 170 000 messages per second. The end-to-end latency of Pulsar is as good as Kafka with 50 milliseconds. NATS Streaming performance is not as good as the other platforms with throughput of only 26 000 messages per second and latency of 148 milliseconds. This is understandable since only one server instance in the NATS cluster can serve requests. 
 
-To summary, with the same hardware capacity, Kafka has the best performance among three platforms in term of both throughput and end-to-end latency. Apache Pulsar comes is in the middle with the same latency as Kafka and lower throughout. NATS Streaming has the lowest throughput and the highest end-to-end latency.
+To summary, with the same hardware capacity, Kafka has the best performance in term of both throughput and end-to-end latency. Apache Pulsar comes in the middle with the same latency as Kafka and lower throughout. NATS Streaming has the lowest throughput and the highest end-to-end latency. Since Kafka is leading among three platforms, its performance will be used as the standard benchmark for grading in the final feature matrix. 

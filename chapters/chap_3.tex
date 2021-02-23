@@ -15,9 +15,9 @@ To assess the popularity, the number of GitHub stars and Google trend points of 
 The result of the preliminary evaluation is summarized in Table \ref{table:preliminary}. The data and number presented in the table were collected in 11/2020.
 
 \begin{table}[h]
+	\includegraphics[width=\linewidth]{images/preliminary}
 	\caption{Preliminary evaluation of 5 open-source ESP platforms.}
 	\label{table:preliminary}
-	\includegraphics[width=\linewidth]{images/preliminary}
 \end{table}
 
 According to these criteria, Apache Kafka and Apache Pulsar are the leaders in all preliminary categories. Among the three remaining platforms, RocketMQ is the most popular. However, the document page of RocketMQ is unfortunately very inadequate and outdated. This could become a great problem during the evaluation.  Therefore, RocketMQ will not be considered in the thesis. Regarding Pravega, despite the promising set of rich features, it is not mature enough since it is still in the sandbox stage at the Cloud Native Computing Foundation. Moreover, the community of Pravega is still too small. On the other hand, although NATS streaming has a moderate community, it has a reasonable maturity and quality of documentation. Moreover, it is built on top of NATS messaging system which is used in industry by many companies such as Siemens, Pivotal, GE and therefore can inherit its stability. The evaluation of NATS streaming can be greatly beneficial for organizations which already have NATS messaging in the infrastructure to integrate NATS streaming more easily.
@@ -138,8 +138,6 @@ For different use cases, the priority might be different. Therefore, despite not
 
 \begin{table}[h]
 	\centering
-	\caption{Considered evaluation criteria in the thesis.}
-	\label{table:criteria}
 	\begin{tabular}{|l|l|}
 		\hline
 		\textbf{No.} & \textbf{Evaluation category / Evaluation criteria}       \\ \hline
@@ -179,6 +177,8 @@ For different use cases, the priority might be different. Therefore, despite not
 		11.1         & End-to-end latency                                       \\ \hline
 		11.2         & Throughput                                               \\ \hline
 	\end{tabular}
+	\caption{Considered evaluation criteria in the thesis.}
+	\label{table:criteria}
 \end{table}
 
 The assessment of the platforms will be organized according to the evaluation categories. However, for the Reliability / Recoverability category, since it is closely related to the non-functional behaviors of other functionalities, the criteria in this section will be considered together with other categories when fitted.
