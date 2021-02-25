@@ -1,4 +1,4 @@
-\section{Event storage} \label{section:security}
+\section{Security} \label{section:security}
 \large \textbf{Apache Kafka}\\
 \normalsize
 \textbf{Authentication mechanisms}\\
@@ -24,7 +24,7 @@ Kafka only supports encryption when transferring data using TLS/SSL \cite{kafkas
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=10cm,height=7.5cm]{images/security-kafka.png}
+	\includegraphics[width=11.5cm]{images/security-kafka.png}
 	\caption{Secured Kafka cluster. Red links are encrypted.}
 	\label{fig:securitykafka}
 \end{figure}
@@ -54,7 +54,7 @@ All connections in a Pulsar cluster can be encrypted with the TLS/SSL protocol. 
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=15cm,height=6.5cm]{images/security-pulsar.png}
+	\includegraphics[width=\linewidth]{images/security-pulsar.png}
 	\caption{Secured Pulsar cluster. Red links are encrypted.}
 	\label{fig:securitypulsar}
 \end{figure} 
@@ -83,7 +83,7 @@ Connections from clients to the NATS streaming server and from streaming module 
 Moreover, NATS Streaming also supports encryption of data at rest. The server can be configured with an encryption key and that will be used by the streaming module to encrypt the payload of all messages before persisting them in the durable storage \cite{natstoreencryption}. However, more fine-grained encryption such as different encryption keys for messages from different clients is not possible on NATS Streaming.
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=10cm,height=6.5cm]{images/security-nats.png}
+	\includegraphics[width=10.5cm]{images/security-nats.png}
 	\caption{Secured NATS Streaming cluster. Red links are encrypted.}
 	\label{fig:securitynats}
 \end{figure}

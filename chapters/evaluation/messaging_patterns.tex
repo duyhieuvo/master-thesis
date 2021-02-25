@@ -14,7 +14,7 @@ It is very straightforward to realize the publish-subscribe pattern with the con
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=\linewidth,height=5cm]{images/competing-consumers-kafka.png}
+	\includegraphics[width=\linewidth]{images/competing-consumers-kafka.png}
 	\caption{Competing consumers pattern with Kafka.}
 	\label{fig:kafkacompetingconsumer}
 \end{figure}
@@ -29,7 +29,7 @@ Kafka provides a forwarding mechanism on the producer side to guarantee that eve
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=\linewidth,height=4cm]{images/consumer-group-kafka.png}
+	\includegraphics[width=\linewidth]{images/consumer-group-kafka.png}
 	\caption{Consumer group pattern with Kafka.}
 	\label{fig:kafkaconsumergroup}
 \end{figure}
@@ -41,14 +41,14 @@ Consumers in the group periodically send heartbeats to Kafka to indicate their l
 In case a consumer fails, its partitions will be reassigned to other consumers in the group automatically. The failover consumer will continue to process messages from the latest reading position of the failed consumer. If this reading position is checkpointed in Kafka, the task of retrieving the consumption status of failed consumer and sending it to the taking-over consumer will be managed transparently by Kafka. On the other hand, if the failed consumer persists its position in an external datastore, Kafka provides the callback \emph{ConsumerRebalanceListener} for consumer to determine when partition rebalancing occurs and retrieve the last reading position on newly assigned partition.
 
 \textbf{Event playback}\\
-A Kafka consumer must specify its reading position using offset number in every request to pull new messages from Kafka. Therefore, it is very straightforward to re-consume older records in Kafka by simply using an older offset number for the new consuming request. 
-
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=10cm,height=4cm]{images/event-playback-kafka.png}
+	\includegraphics[width=\linewidth]{images/event-playback-kafka.png}
 	\caption{Event playback with Kafka.}
 	\label{fig:kafkaeventplayback}
 \end{figure}
+
+A Kafka consumer must specify its reading position using offset number in every request to pull new messages from Kafka. Therefore, it is very straightforward to re-consume older records in Kafka by simply using an older offset number for the new consuming request. 
 
 By default, if a consumer is started with an existing consumer group, its reading position on the assigned partition starts from the latest committed offset number on either Kafka or external datastore, and the position will advance after every request for new messages. However, a Kafka consumer can also reset its reading to an arbitrary position \cite{kafkaconsumerimplement}. This reset operation is done on partition basis. A consumer can only reset the offset of partitions that it is currently assigned to. Next time the consumer pulls more records from this partition, it will start from the reset offset position.
 
@@ -75,14 +75,16 @@ This pattern is realized on Pulsar with the Shared subscription mode. Multiple c
 \textbf{Publish-Subscribe + Competing consumers (Consumer group)}\\
 Like Kafka, messages on Pulsar have the key-value form. If a message is created without a key, it will be delivered to a random partition of the topic. But if a key value is assigned, its hashed value will be used to determine the target partition for the message on the topic. On Pulsar, to enable the combination of Publish-Subscribe and Competing consumers, on the producer side, key values must be assigned to all generated events. They will be used as identifiers for events from the same source and help deliver them to only one consumer.
 
-On consumer side, Failover subscription mode can be used to realize this pattern. In this mode, multiple consumers can be grouped together into the same subscription. Each partition of the subscribed topic will be assigned to only one consumer in the group. Only if a consumer fails, its partitions will be taken over by another consumer in the subscription. By adding key to each event on the producer side, it is ensured that events of the same entity will be on the same partition and therefore a consumer in the subscription will receive all of them. This is similar to the consumer group in Kafka and it requires the topic to be partitioned to enable this parallel consumption. The level of parallelism is also limited by the number of partitions of the topic. 
-
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=\linewidth,height=4cm]{images/consumer-group-pulsar.png}
+	\includegraphics[width=\linewidth]{images/consumer-group-pulsar.png}
 	\caption{Consumer group pattern with Pulsar.}
 	\label{fig:pulsarconsumergroup}
 \end{figure}
+
+On consumer side, Failover subscription mode can be used to realize this pattern. In this mode, multiple consumers can be grouped together into the same subscription. Each partition of the subscribed topic will be assigned to only one consumer in the group. Only if a consumer fails, its partitions will be taken over by another consumer in the subscription. By adding key to each event on the producer side, it is ensured that events of the same entity will be on the same partition and therefore a consumer in the subscription will receive all of them. This is similar to the consumer group in Kafka and it requires the topic to be partitioned to enable this parallel consumption. The level of parallelism is also limited by the number of partitions of the topic. 
+
+
 
 \textbf{Consumer group failover mechanism}\\
 In Failover mode, each partition of the topic is assigned to one consumer in the subscription. Pulsar broker automatically monitors the connection to every consumer. 
@@ -91,16 +93,16 @@ If a consumer disconnects, its partitions will be assigned to other consumers au
 
 \textbf{Event playback}\\
 For Apache Pulsar, event playback is possible with both Consumer and Reader API.
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\linewidth]{images/event-playback-pulsar.png}
+	\caption{Event playback with Pulsar.}
+	\label{fig:pulsareventplayback}
+\end{figure}
 
 Pulsar consumer must acknowledge the consumption of each message. It is the responsibility of the broker to decide which messages will be delivered based on the acknowledgements received from the consumer. By default, if a consumer is started with an existing subscription, the reading will automatically be started from the earliest unacknowledged message onward. Nevertheless, it is also possible to reset the consuming position of the subscription with Consumer API \cite{pulsarconsumerapi}. User can reset reading position to a message with a specific message ID. The message ID must be known beforehand. It is also possible to reset the reading position of the subscription to message published at the time equal or greater than a specified timestamp. 
 
 With Pulsar reader, a starting position of messages to be read from the topic must be specified every time it is started. As a result, the reader has the flexibility to jump to arbitrary positions and replay events on the topic whenever needed \cite{pulsarreaderapi}. The starting position can be defined by providing a message ID. User can also specify a rollback duration to rewind the reading position to a specific time point. The times semantics of both consumer and reader is when the messages were published and were automatically assigned by the Pulsar producer.
-\begin{figure}[h]
-	\centering
-	\includegraphics[width=\linewidth,height=5cm]{images/event-playback-pulsar.png}
-	\caption{Event playback with Pulsar.}
-	\label{fig:pulsareventplayback}
-\end{figure}
 
 \large \textbf{NATS Streaming}\\
 \normalsize
@@ -128,7 +130,7 @@ Since the consumer group pattern is not supported by NATS Streaming, there is al
 Event playback with NATS Streaming is very straightforward. When creating a subscriber to a NATS channel, user has the ability to choose different starting positions for the subscription \cite{natsdevelopingreceivemessage}. Consumer can start consuming messages from a specific sequence number on the channel, from a specific starting time or from a rewind duration. The time semantics here is when a message is stored on the NATS server and is managed by the server.
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=\linewidth,height=5cm]{images/event-playback-nats.png}
+	\includegraphics[width=\linewidth]{images/event-playback-nats.png}
 	\caption{Event playback with NATS Streaming.}
 	\label{fig:natseventplayback}
 \end{figure}

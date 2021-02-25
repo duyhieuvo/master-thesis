@@ -7,7 +7,7 @@ A Kafka broker serves read/write requests from clients as well as persisting the
 Topic partition is the basis element to achieve scalability on Kafka. Each partition can have one or more replicas, namely, a leader and a number followers for fault-tolerance. Each replica of a partition resides completely on the disk of a broker in the cluster. Read and write requests from client can only be done on the leader of a partition. Therefore, by distributing the leaders of partitions evenly among the brokers, the load on the serving layer can be balanced. Moreover, for each partition, to have even distribution, a different subset of brokers is selected to keep its replicas on their disks. A new broker can always be added to the cluster to scale up the capacity of both processing and persisting. When new partitions are created, their replicas will be automatically assigned to the new broker for load balancing.
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=11cm,height=4.5cm]{images/scalability-kafka.png}
+	\includegraphics[width=\linewidth]{images/scalability-kafka.png}
 	\caption{Kafka clustered is scaled up with a new broker.}
 	\label{fig:scalabilitykafka}
 \end{figure}
@@ -25,7 +25,7 @@ When a broker goes down, the partitions with replicas persisted on the failed br
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=11cm,height=5cm]{images/broker-failover-kafka.png}
+	\includegraphics[width=\linewidth]{images/broker-failover-kafka.png}
 	\caption{Kafka clustered is scaled up with a new broker.}
 	\label{fig:brokerfailoverkafka}
 \end{figure}
@@ -45,7 +45,7 @@ On the requests-serving layer, each topic is owned by only one broker in the clu
 On the storage layer, scalability is achieved by the built-in mechanism of Bookkeeper. As elaborated in section \ref{section:eventstorage}, messages are replicated on Bookkeeper cluster in fragments. Each fragment has a different ensemble which is determined by the Pulsar broker. When a new Bookkeeper nodes is started, they will automatically be considered when choosing the ensemble for the next fragment and can start to share the load with other existing nodes. 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=10cm,height=6cm]{images/scalability-pulsar.png}
+	\includegraphics[width=\linewidth]{images/scalability-pulsar.png}
 	\caption{Storage layer of Pulsar can be scaled up seamlessly by starting new Bookkeeper instances.}
 	\label{fig:scalabilitypulsar}
 \end{figure}
@@ -66,7 +66,7 @@ Each sub-cluster must be strictly configured with a fixed set of channels. Reque
 %To save resources with the partitioning feature, active server instance of a sub-cluster can run along with standby instances of other sub-clusters on one host machine. This would not have a significant impact on the performance because the standby instances only forward requests and do not use much resource. 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=12cm,height=5cm]{images/scalability-nats.png}
+	\includegraphics[width=\linewidth]{images/scalability-nats.png}
 	\caption{Request-serving layer of NATS Streaming can be scaled with the partitioning feature.}
 	\label{fig:scalabilitynats}
 \end{figure}

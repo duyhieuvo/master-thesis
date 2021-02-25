@@ -30,7 +30,7 @@ To focus on the components which interact directly with the platform, the source
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=7cm,height=7cm]{images/reading-position-fail.png}
+	\includegraphics[width=8cm]{images/reading-position-fail.png}
 	\caption{Failure scenarios \emph{event-generator-crash}, \emph{stream-processor-crash} and \emph{stream-aggregator-crash}.}
 	\label{fig:scenarioreadingposition}
 \end{figure}
@@ -44,6 +44,15 @@ Kafka and Pulsar support using the consumer group pattern to read a partitioned 
 On Kafka, whenever a consumer send a pulling request for new messages from Kafka, it will be notified about partition reassignment event if there is any. In normal condition, when the partitions are redistributed among the consumers (e.g. when a new consumer joins the consumer group), before the new consumer is notified about its newly assigned partition, the previous owner of the partition always has the chance to gracefully give up the ownership on the partition by committing the offset number of processed messages \cite{kafkaconsumerimplement}. Kafka handles the coordination of this transition process transparently to users. Therefore, same messages will not be delivered to two different consumers in this case. 
 
 However, ownership on a partition can be revoked before the owning consumer is notified. This is the case when the consumer is stalled for some reason (e.g. garbage collection pause, some messages take longer to process than expected) and fails to send new messages pulling request within the permitted interval. In this case, the consumer will be removed from the group by Kafka and its partition will be reassigned to another consumer in the group. As a result, the messages whose offset numbers have not been committed by old consumer will be redelivered to the new one leading to message duplication on two instances. This scenario can be simulated by simply pausing a consumer instance in the consumer group after it has pulled a new batch of messages and before it starts to process and commit offset for these messages until Kafka deems this consumer to be disconnected (figure \ref{fig:kafkascenario}). 
+\newpage
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=12cm]{images/kafka-duplicated-scenario.png}
+	\caption{Failure scenario \emph{duplicated-consumer} on Kafka when a partition is reassigned without notifying the previous owning consumer.}
+	\label{fig:kafkascenario}
+\end{figure}
+
+\iffalse
 
 \begin{figure}[t!]
 	\begin{adjustwidth}{-2cm}{-2cm}
@@ -53,24 +62,33 @@ However, ownership on a partition can be revoked before the owning consumer is n
 		\centering
 		\includegraphics[width=\linewidth]{images/kafka-duplicated-scenario.png}
 		\caption{Failure scenario \emph{duplicated-consumer} on Kafka when a partition is reassigned without notifying the previous owning consumer.}
-		\label{fig:kafkascenario}
+		\label{fig:kafkascenario1}
 	\end{subfigure}
 	\begin{subfigure}[t]{0.49\linewidth}
 		\centering
 		\includegraphics[width=\linewidth]{images/pulsar-duplicated-scenario.png}
 		\caption{Failure scenario \emph{duplicated-consumer} on Pulsar when a new consumer joins the failover subscription.}
-		\label{fig:pulsarscenario}
+		\label{fig:pulsarscenario1}
 	\end{subfigure}
 \end{adjustwidth}
 	\caption{Failure scenario \emph{duplicated-consumer} on Kafka and Pulsar.}
 	\label{fig:failurescenario}
 \end{figure}
-
+\fi
 The failure scenario \emph{duplicated-consumer} can also occur with Pulsar. When a consumer subscribe to a Pulsar topic, messages on all topic assigned to this consumer will be pushed to a local queue until it is full \cite{pulsarbinaryprotocol}. When the consumer has consumed and acknowledged half of the buffered messages, new messages will be delivered. When a new consumer joins the same failover subscription, Pulsar broker will assign some topic partitions to it for load balancing. In this case, if the old consumer has not processed and acknowledged all messages of the reassigned partition on its queue, these messages will be redelivered again to the new consumer which causes message duplication on the queue of two consumers. This scenario can be provoked by introduced a small delay into the first consumer instance before it can start to process the messages on its local queue to give the second consumer instance enough time to join the subscription and receive the unprocessed messages again. This is illustrated in figure \ref{fig:pulsarscenario}.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=12cm]{images/pulsar-duplicated-scenario.png}
+	\caption{Failure scenario \emph{duplicated-consumer} on Pulsar when a new consumer joins the failover subscription.}
+	\label{fig:pulsarscenario}
+\end{figure}
 
 The \emph{duplicated-consumer} scenario will be realized on the stream processor component where the consuming and producing of messages are done within the protection scope of the platform. For the view generator component which reads input from the ESP platform and writes output data to an external data sink, in order to have exactly-once semantics with this scenario, the gap between the platform and the data sink varies and must be bridged differently with different types of external system.
 
-\begin{table}[]
+Table \ref{fig:failurescenariostable} gives a summary of the 4 failure scenarios and which processing component fails in each scenario.
+
+\begin{table}[h!]
 	\begin{adjustwidth}{-1cm}{}
 	\centering
 	\begin{tabular}{|l|l|l|l|}
@@ -81,9 +99,9 @@ The \emph{duplicated-consumer} scenario will be realized on the stream processor
 		\textit{view-generator-crash}   & \begin{tabular}[t]{@{}l@{}}one instance\\ no failure\end{tabular}        & \begin{tabular}[t]{@{}l@{}}one instance\\ no failure\end{tabular}                                                                       & \begin{tabular}[t]{@{}l@{}}one instance\\ crash and restart\end{tabular} \\ \hline
 		\textit{\begin{tabular}[t]{@{}l@{}}duplicated-consumer\\ (Kafka and Pulsar only)\end{tabular}}   & \begin{tabular}[t]{@{}l@{}}one instance\\ no failure\end{tabular}        & \begin{tabular}[t]{@{}l@{}}two instances \\ first instance: is delayed\\ second instance: no failure \end{tabular} & \begin{tabular}[t]{@{}l@{}}one instance\\ no failure\end{tabular}        \\ \hline
 	\end{tabular}
-	\label{fig:failurescenariostable}
 	\end{adjustwidth}
 	\caption{Summary of 4 failure scenarios.}
+	\label{fig:failurescenariostable}
 \end{table}
 
 \input{chapters/implementation/implementation}

@@ -18,7 +18,7 @@ In distributed systems or microservices applications, systems or services need t
 In the first approach, a system sends command to request for state change or queries current state in other systems. This method is hard to scale because the control logic concentrates on the sender of requests. Adding a new system usually involves code change in others to include it in the control flow. For the latter approach, systems communicate with each other using events.
 
 \textbf{Event}\\
-An event represents something occurred in the past and cannot be altered or deleted \cite{cqrsgregyoung}. It is simply a fact stating what has happened in the system. Whenever a system updates its state, it sends out an event. Any other system can listen and operate on this event without the sender knowing about it. This leads to inversion of control when the receiver of events now dictates the operational logic. As a result, the systems can be more loosely coupled. New service or system can be easily plugged and start to consume events while other services remain unmodified. There are three common patterns to use events, namely, event notification, event-carried state transfer and event sourcing \cite{martinfowlereventdriven}.
+An event represents something occurred in the past and cannot be altered or deleted \cite{cqrsgregyoung}. It is simply a fact stating what has happened in the system. Whenever a system updates its state, it sends out an event. Any other system can listen and operate on this event without the sender knowing about it. This leads to inversion of control when the receiver of events now dictates the operational logic. As a result, the systems can be more loosely coupled. New service or system can be easily plugged in and start to consume events while other services remain unmodified. There are three common patterns to use events, namely, event notification, event-carried state transfer and event sourcing \cite{martinfowlereventdriven}.
 
 \textbf{Event Notification}\\
 The events are used only for notifying about a state change on the sender. Receiver decides which operation should be executed upon receiving the events. This usually involves querying for more information from either the publisher of events or another system.   
@@ -89,7 +89,7 @@ Stream processing is not merely a data processing paradigm to achieve low latenc
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=12cm,height=6.5cm]{images/linkedin-data-flow-ugly.png}
+	\includegraphics[width=\linewidth]{images/linkedin-data-flow-ugly.png}
 	\caption{The tangled data systems at LinkedIn in the old day \cite{eventstreamingplatform}.}
 	\label{fig:tangledsystem}
 \end{figure}
@@ -99,7 +99,7 @@ Jay Kreps described in his article an approach that can solve this problem by bu
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=9.5cm,height=4.6cm]{images/eventstreamprocessing.png}
+	\includegraphics[width=11cm,height=6.5cm]{images/eventstreamprocessing.png}
 	\caption{System with streams of events as the single source of truth.}
 	\label{fig:eventstreamprocessingsystem}
 \end{figure}

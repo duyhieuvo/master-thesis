@@ -8,7 +8,7 @@ Kafka Connect provides a uniform and high-level Java programming interface to de
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=10cm,height=6cm]{images/connector-kafka.png}
+	\includegraphics[width=12cm]{images/connector-kafka.png}
 	\caption{Kafka Connect cluster to integrate data between Kafka and external data systems.}
 	\label{fig:connectkafka}
 \end{figure}
@@ -24,7 +24,7 @@ With Kafka connector, users can also define a chain of simple and pluggable tran
 
 There are already many off-the-shelf connectors available for various data systems. The Confluent Hub, which is managed by the Confluent company, is a central repository to share Kafka connectors with both open-sourced and commercial licenses. There are connectors of many common data systems such as relational database, Hadoop distributed file system (HDFS), Cassandra, change data capture (CDC) on the source system. All these connectors can be quickly configured and deployed to a Kafka Connect cluster without any implementation requires. This can further offload the development burden on users to integrate Kafka with other data systems.
 
-
+\newpage
 
 \textbf{Supported programming languages for clients}\\
 The official release of Kafka includes only the Java client \cite{kafkaclients}. Kafka relies on different smaller groups of developers for providing clients in different programming languages. There are many third-party projects with more than 15 different supported programming languages such as C/C++, Python, Go. Most of these projects are very active and regularly updated along with the new release from Kafka.  

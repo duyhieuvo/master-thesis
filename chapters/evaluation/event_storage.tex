@@ -13,7 +13,7 @@ As briefly mentioned in the general concept, there are two types of Kafka partit
 However, enabling only data replication on the broker cannot guarantee that all records are safely replicated on the Kafka cluster.  By default, a Kafka producer sends a record and only waits for the acknowledgement of successful write from the leader partition. If the broker with the leader partition goes down before the record is flushed to its disk and replicated to other follower replications, the record may be lost without the producer knowing about it for resending. Therefore, the producer must be strictly configured to wait for acknowledgements from the leader partition as well as other follower replicas. In this case, the leader partition will also wait for acknowledgements from its followers before confirming with client. By having the redundant acknowledgements, durability is guaranteed even when messages are not yet persisted to disks given that all brokers retain the partition do not fail simultaneously. 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=8cm,height=6.5cm]{images/ft-eventstorage-kafka.png}
+	\includegraphics[width=12cm]{images/ft-eventstorage-kafka.png}
 	\caption{Data replication model for fault tolerance of event storage on Kafka.}
 	\label{fig:fteventstorekafka}
 \end{figure}
@@ -35,7 +35,7 @@ For the first strategy, user can choose different retention policies for a parti
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=6.5cm,height=5.5cm]{images/compact-kafka.png}
+	\includegraphics[width=10cm]{images/compact-kafka.png}
 	\caption{Log compaction on Kafka (taken from Kafka documentation \cite{kafkadesignlogcompact}).}
 	\label{fig:compactekafka}
 \end{figure}
@@ -62,7 +62,7 @@ Pulsar supports replication of messages of a topic on multiple Bookies for fault
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=6cm,height=2.5cm]{images/pulsar-topic.png}
+	\includegraphics[width=12.5cm]{images/pulsar-topic.png}
 	\caption{Underlying storage layers of a Pulsar topic.}
 	\label{fig:pulsartopic}
 \end{figure}
@@ -77,7 +77,7 @@ As briefly mentioned in the general concept, a Pulsar topic can be read using Pu
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=12cm,height=7cm]{images/pulsar-retention.png}
+	\includegraphics[width=\linewidth]{images/pulsar-retention.png}
 	\caption{Message retention policy on Pulsar.}
 	\label{fig:pulsarretention}
 \end{figure}
@@ -111,7 +111,7 @@ Fault tolerance of event store is provided out-of-the-box by NATS Streaming with
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=10.5cm,height=7cm]{images/ft-eventstorage-nats.png}
+	\includegraphics[width=12.2cm]{images/ft-eventstorage-nats.png}
 	\caption{Fault tolerance of event storage on NATS Streaming in clustering mode.}
 	\label{fig:natsftstorage}
 \end{figure}

@@ -3,7 +3,21 @@
 The three main components are implemented with the low level Java client APIs of the platforms. Consumer clients of the platforms are used to subscribe and read messages on the streams while producer clients are used to publish messages to the platforms.
 
 \textbf{Event generator and Stream processor}
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=11cm]{images/implement-event-generator.png}
+	\caption{Sequence diagram of event generator component.}
+	\label{fig:implementeventgenerator}
+\end{figure}
 
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=11cm]{images/implement-stream-processor.png}
+	\caption{Sequence diagram of stream processor component.}
+	\label{fig:implementstreamprocessor}
+\end{figure}
+\iffalse
 \begin{figure}[ht!]
 	\begin{adjustwidth}{-1cm}{-1cm}
 	\centering
@@ -11,21 +25,22 @@ The three main components are implemented with the low level Java client APIs of
 		\centering
 		\includegraphics[width=\linewidth]{images/implement-event-generator.png}
 		\caption{Sequence diagram of event generator component.}
-		\label{fig:implementeventgenerator}
+		\label{fig:implementeventgenerator1}
 	\end{minipage}%
 	\hfill
 	\begin{minipage}[t]{.48\linewidth}
 		\centering
 		\includegraphics[width=\linewidth]{images/implement-stream-processor.png}
 		\caption{Sequence diagram of stream processor component.}
-		\label{fig:implementstreamprocessor}
+		\label{fig:implementstreamprocessor1}
 	\end{minipage}
 	\end{adjustwidth}
 \end{figure}
-
+\fi
 Figures \ref{fig:implementeventgenerator} and \ref{fig:implementstreamprocessor} show the sequence diagrams of the event generator and the stream processor respectively. With Apache Kafka and Apache Pulsar, to achieve exactly-once semantics with these two components,  the two operations to publish events and update the reading position on the data source must be atomically combined with the transaction features of the two platforms. 
 
 Listing \ref{lst:kafkastreamprocessor} shows part of the source code of the stream processor component for Kafka. The transaction, in which transformed events are published to \emph{transformed-event} topic and the offset numbers of consumed messages on \emph{raw-event} topic are committed to Kafka, is started on line 12 and committed on line 29. 
+\newpage
 
 \lstinputlisting[label={lst:kafkastreamprocessor},language=Java,caption={Kafka stream processor with the transaction feature.}]{chapters/implementation/KafkaStreamProcessor.java} 
 
@@ -48,6 +63,7 @@ With NATS Streaming, atomically publishing and acknowledging the consumption of 
 \textbf{View generator}
 
 Regarding the view generator component, the implementations on all three platforms are fairly similar. To interact with the relational database and map Java object to relational table, the OpenJPA which is an implementation of Java Persistence API (JPA) \cite{jpa} is used. Two entities, namely, \emph{CurrentBalance} and \emph{CurrentReadingPosition} (listings \ref{lst:currentbalance} and \ref{lst:currentreadingposition}), representing the snapshot of current balances and reading position on the source stream respectively are defined and mapped to two corresponding tables on the PostgreSQL database.   
+\newpage
 
 \lstinputlisting[label={lst:currentbalance},language=Java,caption={Current balance entity.}]{chapters/implementation/CurrentBalance.java} 
 

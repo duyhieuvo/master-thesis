@@ -6,10 +6,10 @@ To achieve ordering guarantee of messages, the throughput must be compromised. O
 
 To have both concurrency and ordering guarantee, the concurrent instances must coordinate with each other to enforce the right order when publishing or consuming messages. Nevertheless, this method can introduce more overhead to the system.
 
-Moreover, when a producer asynchronously send a message and proceed to the next one before receiving acknowledgement from the broker, if a message fails to reach the broker and is resent later, it is possible that another message may arrive in between causing their orders to be interchanged.
+Moreover, when a producer asynchronously send a message and proceed to the next one before receiving acknowledgement from the broker, if a message fails to reach the broker and is resent later, it is possible that another message may arrive in between causing their orders to be interchanged (figure \ref{fig:outorderretry}).
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=6cm,height=4cm]{images/order.png}
+	\includegraphics[width=10cm]{images/order.png}
 	\caption{Asynchronous publishing and retrying causes out-of-order messages.}
 	\label{fig:outorderretry}
 \end{figure}
@@ -66,7 +66,7 @@ To prevent duplication across two different connection sessions, Kafka provides 
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=\linewidth]{images/exactly-once-kafka.png}
-	\caption{Support of exactly-once semantics on Kafka (\emph{green}: fully supported, \emph{yellow}: partly supported, \emph{red}: not supported).}
+	\caption{Support of exactly-once semantics on Kafka.}
 	\label{fig:exactlyoncekafka}
 \end{figure}
 
@@ -113,7 +113,7 @@ The transaction feature is still in technical review phase. Therefore, this feat
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=\linewidth]{images/exactly-once-pulsar.png}
-	\caption{Support of exactly-once semantics on Pulsar (\emph{green}: fully supported, \emph{yellow}: partly supported, \emph{red}: not supported).}
+	\caption{Support of exactly-once semantics on Pulsar.}
 	\label{fig:exactlyoncepulsar}
 \end{figure}
 
@@ -127,15 +127,17 @@ Messages on NAT Streaming are organized into different channels. There is no low
 
 On the subscriber, to guarantee the order of messages, only normal subscription mode can be used. In this mode, each subscription has only one consumer without any other competing consumer \cite{natsconceptchannels}. Therefore, this single consumer can receive all messages on the channel in right order and process them sequentially.
 
-Moreover, with its delivery model, NATS streaming actively pushes messages to subscriber and expects that these messages will be processed right away and acknowledged shortly after. Therefore, in case the consumption of a message takes longer time than the timeout for acknowledgement, the message can be resent out-of-order along with new messages. If the processing speed of client does not match the delivery of server, the sequence of delivered messages will not retain the right order anymore.
+Moreover, with its delivery model, NATS streaming actively pushes messages to subscriber and expects that these messages will be processed right away and acknowledged shortly after. Therefore, in case the consumption of a message takes longer time than the timeout for acknowledgement, the message can be resent out-of-order along with new messages. If the processing speed of client does not match the delivery of server, the sequence of delivered messages will not retain the right order anymore (figure \ref{fig:ordernats}).
+
+
+Therefore, the sending rate of the server must be limited to only one unacknowledged message at a time necessary to avoid out-of-order redelivery \cite{natsdevelopingacks}. As a result, it is not possible to receive messages in batch with NATS Streaming. 
+
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=5cm,height=7cm]{images/order-nats.png}
+	\includegraphics[width=9cm]{images/order-nats.png}
 	\caption{NATS Streaming server redelivers messages out-of-order: message 1 and 2 are processed longer than the acknowledgement timeout and therefore are resent by server. Client sees the sequence of messages 1, 2, 3, 1, 4, 2.}
 	\label{fig:ordernats}
 \end{figure}
-
-Therefore, the sending rate of the server must be limited to only one unacknowledged message at a time necessary to avoid out-of-order redelivery \cite{natsdevelopingacks}. As a result, it is not possible to receive messages in batch with NATS Streaming. 
 
 On the producer side, messages must be published to the same channel where order is retained. Moreover, producer must synchronously send the messages one after another since the NATS server does not support protection against out-of-order caused by resending messages.  
 
@@ -159,7 +161,7 @@ As a result, in general, exactly-once semantics is not supported by NATS Streami
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=\linewidth]{images/exactly-once-nats.png}
-	\caption{Support of exactly-once semantics on NATS Streaming (\emph{green}: fully supported, \emph{yellow}: partly supported, \emph{red}: not supported).}
+	\caption{Support of exactly-once semantics on NATS Streaming.}
 	\label{fig:exactlyoncenats}
 \end{figure}
 
