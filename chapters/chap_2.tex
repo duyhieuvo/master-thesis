@@ -3,17 +3,16 @@ In order to conduct the comparison effectively, it is necessary to first lay a g
 
 
 \section{Event Driven Architecture} \label{section:eventdriven}
-%\subsection{Monolithic Architecture}
-%A monolithic application focuses on the simplicity. All components including user interface, business logic and data accessing services are developed, packaged and deployed in a single unit \cite{monolith}.
+\subsection{Monolithic Architecture}
+A monolithic application focuses on the simplicity. All components including user interface, business logic and data accessing services are developed, packaged and deployed in a single unit \cite{monolith}.
 
-%Monolithic applications are straightforward to develop and test since the control flow is very transparent. Deployment and scaling are also simple because there is only a single software artifact. A monolithic architecture can also result in better performance for small application with few users \cite{al2018comparative}. Therefore, when starting a new software project, monolith should be the first choice to be considered \cite{monolithfirst}. 
+Monolithic applications are straightforward to develop and test since the control flow is very transparent. Deployment and scaling are also simple because there is only a single software artifact. A monolithic architecture can also result in better performance for small application with few users \cite{al2018comparative}. Therefore, when starting a new software project, monolith should be the first choice to be considered \cite{monolithfirst}. 
+
+\subsection{Microservices with Event-Driven Approach}
+As the application expands, monolithic architecture gradually becomes more rigid and harder to adapt to the agile development cycle. A small change in any service will lead to rebuilding and redeployment of the entire application. Moreover, developers in the team must work closely together and cannot freely establish their own paces. For that reason, the microservices architecture arises. In general, an application is disassembled into services according to different business capabilities \cite{microservicesfowler}. These services are self-contained and loosely-coupled with each other. Each of them maintains a separate database and expose its data with other only via a mutually agreed contract. Since every service itself is an independent deployable, it can have its own development cycle and technology stack. Services also allow finer-grained scaling of the application. This is very useful for reducing cost when deploying the application to the cloud \cite{villamizar2016infrastructure}.
 
 
-%As the application expands, monolithic architecture gradually becomes more rigid and harder to adapt to the agile development cycle. A small change in any service will lead to rebuilding and redeployment of the entire application. Moreover, developers in the team must work closely together and cannot freely establish their own paces. For that reason, the microservices architecture arises. In general, an application is disassembled into services according to different business capabilities \cite{microservicesfowler}. These services are self-contained and loosely-coupled with each other. Each of them maintains a separate database and expose its data with other only via a mutually agreed contract. Since every service itself is an independent deployable, it can have its own development cycle and technology stack. Services also allow finer-grained scaling of the application. This is very useful for reducing cost when deploying the application to the cloud \cite{villamizar2016infrastructure}.
-
-%With microservices architecture, an application is disassembled into services according to different business capabilities \cite{microservicesfowler}. These services are self-contained and loosely-coupled with each other. Each of them maintains a separate database and expose its data with other only via a mutually agreed contract. Since every service itself is an independent deployable, it can have its own development cycle and technology stack. Services also allow finer-grained scaling of the application. This is very useful for reducing cost when deploying the application to the cloud \cite{villamizar2016infrastructure}.
-
-In distributed systems or microservices applications, systems or services need to have a mechanism to coordinate and work together to achieve end results. There are typically two approaches for this task, namely, request-driven and event-driven \cite{stopford2018designingeventdriven}.
+In microservices applications or distributed systems in general, systems or services need to have a mechanism to coordinate and work together to achieve end results. There are typically two approaches for this task, namely, request-driven and event-driven \cite{stopford2018designingeventdriven}.
 
 In the first approach, a system sends command to request for state change or queries current state in other systems. This method is hard to scale because the control logic concentrates on the sender of requests. Adding a new system usually involves code change in others to include it in the control flow. For the latter approach, systems communicate with each other using events.
 
@@ -30,7 +29,7 @@ The events are used only for notifying about a state change on the sender. Recei
 \end{figure}
 
 %The approaches of event notification and request-driven ensure a minimum level of coupling by letting each service manage its own data and only share when being requested. Another advantage is that the state of each service is consistent throughout the entire system since it only exists in one place. Nevertheless, these approaches only works at their best when services are truly independent from each other which is usually not the case in reality. It is unavoidable that services must maintain a certain level of dependency and sharing of data. When services grow with more functionalities, they need to expand the service contract to expose more data to outside which then leads to higher coupling. This is known as the dichotomy of data and services \cite{stopford2018designing}. Therefore, the two following patterns tackle this problem by proactively allowing services to openly share their data instead of encapsulating it within each service.
-The approaches of event notification ensure a minimum level of coupling by letting each system manage its own data and only share when being requested. Another advantage is that the state of each system is consistent since it exists and can be queried from one place. Nevertheless, when systems grow with more functionalities, they need to expand the service contract to expose more data to outside which then leads to higher coupling. Therefore, the two following patterns tackle this problem by proactively allowing systems to openly share their data instead of encapsulating it within themselves.
+The approaches of event notification ensure a minimum level of coupling by letting each system manage its own data and only share when being requested. Another advantage is that the state of each system is consistent since it exists and can be queried from one place. Nevertheless, these approaches only works at their best when services are truly independent from each other which is usually not the case in reality. It is unavoidable that services must maintain a certain level of dependency and sharing of data. When services grow with more functionalities, they need to expand the service contract to expose more data to outside which then leads to higher coupling. This is known as the dichotomy of data and services \cite{stopford2018designing}. Therefore, the two following patterns tackle this problem by proactively allowing systems to openly share their data instead of encapsulating it within themselves.
 
 \textbf{Event-Carried State Transfer}\\
 With this pattern, each event encloses more detail information about what and how something has been changed. As a result, current state of any system can be reconstructed anywhere by applying its published events on the same initial state in the same order. Therefore, every subscriber can retain a local state replica and keep it synchronized with the source of events.
@@ -41,7 +40,7 @@ With this pattern, each event encloses more detail information about what and ho
 	\label{fig:eventstatetransfer}
 \end{figure}
 
-When a system keeps a state copy of another locally, it can access this data faster and becomes independent of the online status of the source of data. Nevertheless, having copies of data across multiple systems also means that these copies can be in inconsistent state temporarily or even worse permanently if it is not designed carefully. 
+When a system keeps a state copy of another locally, it can access this data faster and becomes independent of the online status of the source of data. Nevertheless, having copies of data across multiple systems also means that these copies can be in inconsistent state temporarily or even worse permanently if it is not designed carefully. This concern is closely related to the problem of how to atomically update the local state and publish a corresponding event.
 
 %\textbf{Event Sourcing and \acrfull{cqrs}}\\
 \textbf{Event Sourcing}\\
@@ -53,17 +52,19 @@ The event sourcing pattern takes one step further. Events are not used to only n
 	\label{fig:eventsourcing}
 \end{figure}
 
-Apart from providing a loosely-coupled and scalable way for coordination among services and systems, event sourcing comes with additional benefits. The stream of events retains the entire history of the system and therefore can be used for auditing, extracting more value from past events, troubleshooting problem during production as well as for testing and fixing errors by simply replaying the events with the new system.
+This approach eliminates the need of atomically updating state and generating event as in event-carried state transfer since there is now only publishing of events. Apart from providing a loosely-coupled and scalable way for coordination among services and systems, event sourcing comes with additional benefits. The stream of events retains the entire history of the system and therefore can be used for auditing, extracting more value from past events, troubleshooting problem during production as well as for testing and fixing errors by simply replaying the events with the new system.
 
-%Event sourcing is often used together with CQRS \cite{cqrsgregyoung}. The CQRS pattern promotes the idea of having two independent sides of command and query corresponding to two separate models for writing and reading data respectively. By doing this, each model can scale independently based on the load of each side. Moreover, this gives the flexibility to derive multiple ways to query data on the reading side without being tightly coupled to the data model of the input side. 
+\textbf{\acrfull{cqrs}}\\
+Event sourcing is often used together with CQRS \cite{cqrsgregyoung}. The CQRS pattern promotes the idea of having two independent sides of command and query corresponding to two separate models for writing and reading data respectively. By doing this, each model can scale independently based on the load of each side. Moreover, this gives the flexibility to derive multiple ways to query data on the reading side without being tightly coupled to the data model of the input side. 
 
-%\begin{figure}[h]
-%	\includegraphics[width=\linewidth]{images/cqrs.png}
-%	\caption{Event sourcing and CQRS.}
-%	\label{fig:cqrs}
-%\end{figure}
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\linewidth]{images/cqrs.png}
+	\caption{Event sourcing and CQRS.}
+	\label{fig:cqrs}
+\end{figure}
 
-%In the context of event sourcing, the command side of CQRS is the stream of events. Greg Young pointed out a number of reasons why this is a good writing model \cite{cqrsgregyoung}. The append-only operation to add new events makes it more scalable. Moreover, there is no impedance mismatch between domain model of the application and the storage model as in the case of relational database because event is also a domain concept. On the query side, the representation of current state are created with the underline events stream. Figure \ref{fig:cqrs} illustrates an example of a simple bank account management system. Transactions of users are recorded as events. The queryable current account balance is derived by aggregating the history of transactions and writing it to a relational database which is solely for reading.
+In the context of event sourcing, the command side of CQRS is the stream of events. There are a number of reasons why this is a good writing model \cite{cqrsgregyoung}. Firstly, the append-only operation to add new events makes it more scalable. Moreover, there is no impedance mismatch between domain model of the application and the storage model as in the case of relational database because event is also a domain concept. On the query side, the representation of current state are created with the underline events stream. Figure \ref{fig:cqrs} illustrates an example of a simple bank account management system. Transactions of users are recorded as events. The queryable current account balance is derived by aggregating the history of transactions and writing it to a relational database which is solely for reading.
 
 Event-driven architecture and its related patterns are useful but it also comes with a cost of increasing complexity in the system \cite{eventsourcingishard}. One of the most significant added values of this approach is to reduce the coupling and lay the foundation for systems with high demand for scalability. If this is not the case, a simpler approach should be chosen to not overcomplicate the system.
 
@@ -89,13 +90,12 @@ Stream processing is not merely a data processing paradigm to achieve low latenc
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=\linewidth]{images/linkedin-data-flow-ugly.png}
+	\includegraphics[width=13.9cm]{images/linkedin-data-flow-ugly.png}
 	\caption{The tangled data systems at LinkedIn in the old day \cite{eventstreamingplatform}.}
 	\label{fig:tangledsystem}
 \end{figure}
 
-Jay Kreps described in his article an approach that can solve this problem by building an infrastructure revolving around event streams \cite{logjaykreps}. Every event recorded by any data system in the organization, is written orderly to an append-only log. This becomes backbone for all data systems in the organization. Each system has the flexibility to derive different data representations from the raw events to match its specific access pattern. The task of data representation is now done at individual system instead of in the central data store. 
-%This is referred by Martin Kleppmann as turning the database inside out \cite{kleppmann2016making}. With this approach, an entire software infrastructure of organization now turns into a gigantic distributed database with the log of events lying at the center and all systems are simply indexes on the raw data in the form of events \cite{logjaykreps}. 
+Jay Kreps, who was in the team which first created Apache Kafka at LinkedIn and is the co-founder of the Confluent company, described in his article an approach that can solve this problem by building an infrastructure revolving around event streams \cite{logjaykreps}. Every event recorded by any data system in the organization, is written orderly to an append-only log. This becomes backbone for all data systems in the organization. Each system has the flexibility to derive different data representations from the raw events to match its specific access pattern. The task of data representation is now done at individual system instead of in the central data store. This is sometimes referred as turning the database inside out \cite{kleppmann2016making}. With this approach, an entire software infrastructure of organization now turns into a gigantic distributed database with the log of events lying at the center and all systems are simply indexes on the raw data in the form of events. 
 
 \begin{figure}[h]
 	\centering
@@ -104,11 +104,8 @@ Jay Kreps described in his article an approach that can solve this problem by bu
 	\label{fig:eventstreamprocessingsystem}
 \end{figure}
 
-This is basically applying event sourcing pattern on a much bigger scale. As a result, processing streams of events on an organizational scale becomes a non-trivial task. This is where stream processing fits in by providing a scalable tool to handle such amount of data. Applications and their decoupled services can use stream processing to continuously consume, process and generate new events while data systems can use streaming tool to continuously integrate new data from the streams to their data representation. The result is a more neatly organized infrastructure with every system synchronizes and communicates via the event streams using stream processing (figure \ref{fig:eventstreamprocessingsystem}). 
+This is basically applying event sourcing pattern on a much bigger scale rather than only within services in an application. As a result, processing streams of events on an organizational scale becomes a non-trivial task. This is where stream processing fits in by providing a scalable tool to handle such amount of data. Applications and their decoupled services can use stream processing to continuously consume, process and generate new events while data systems can use streaming tool to continuously integrate new data from the streams to their data representation. The result is a more neatly organized infrastructure with every system synchronizes and communicates via the event streams using stream processing (figure \ref{fig:eventstreamprocessingsystem}). 
 
-
-
-%Any data service in the system can consume and process this log of raw events using stream processing to generate a local replication of the current system state. This log-centric design fits seamlessly into a distributed environment with numerous moving components to allow data to be replicated among services with minimal coupling \cite{logjaykreps}. 
 
 
 

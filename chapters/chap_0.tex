@@ -18,7 +18,7 @@ I declare that this thesis has been written solely on my own. I herewith officia
 \pagestyle{scrheadings} % reenable headers and footers
 
 \begin{abstract}	
-
+Event-driven architecture with event streaming approach has the great possibility to help construct applications and infrastructures which are scalable and resilient to changes. In order to implement such systems, an Event Stream Processing platform is usually utilized to establish the backbone of event streams. However, there are numerous platforms available, each of which has a different set of features, advantages and disadvantages and this can result in difficulties to choose a platform tailored to the need of users. The aims of this thesis were to conduct a comprehensive evaluation covering all important functionalities and features of event stream processing on three well-known open-source platforms, namely, Apache Kafka, Apache Pulsar and NATS Streaming. The evaluation results were summarized into a feature matrix with adjustable weighting factor for each functionality and feature. By adjusting these factors according to different sets of requirements, the most suitable platform can be determined for each different use case. In addition, the highest message delivery semantics on three platforms were analyzed in detail by simulating different failure scenarios on a banking transaction showcase built on top of the platforms. While Apache Kafka and Apache Pulsar both support exactly-once semantics, only Kafka can guarantee that events are processed in the correct order with this semantics. On the other hand, NATS Streaming only supports at-least-once delivery semantics.   
 \end{abstract}
 
 
