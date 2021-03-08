@@ -88,9 +88,9 @@ The two operations to persist snapshot of current balances and corresponding rea
 \subsection{Failure injection}
 To provoke failure scenarios described in section \ref{subsection:failurescenarios}, custom codes are injected into the the application at runtime to pause or terminate the program using Byteman tracing tool for Java \cite{byteman}. With this tool, Byteman rule can be defined to inject arbitrary code into a running application when a condition is met. A Byteman rule contains of three main parts: 
 \begin{itemize}
-	\item Event: this triggers the rule
-	\item Condition: this part checks the current status of the running application
-	\item Action: this part defines the alternative behavior of the application if the condition is satisfied
+	\item Event: this triggers the rule.
+	\item Condition: this part checks the current status of the running application.
+	\item Action: this part defines the alternative behavior of the application if the condition is satisfied.
 \end{itemize}
 
 
