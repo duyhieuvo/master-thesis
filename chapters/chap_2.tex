@@ -6,10 +6,10 @@ In order to conduct the comparison effectively, it is necessary to first lay a g
 \subsection{Monolithic Architecture}
 A monolithic application focuses on the simplicity. All components including user interface, business logic and data accessing services are developed, packaged and deployed in a single unit \cite{monolith}.
 
-Monolithic applications are straightforward to develop and test since the control flow is very transparent. Deployment and scaling are also simple because there is only a single software artifact. A monolithic architecture can also result in better performance for small application with few users \cite{al2018comparative}. Therefore, when starting a new software project, monolith should be the first choice to be considered \cite{monolithfirst}. 
+Monolithic applications are straightforward to develop and test since the control flow is very transparent. Deployment and scaling are also simple because there is only a single software artifact. A monolithic architecture can also result in better performance for small application with not many users \cite{al2018comparative}. When starting a new software project, monolith should be the first choice to be considered \cite{monolithfirst}. 
 
 \subsection{Microservices with Event-Driven Approach}
-As the application expands, monolithic architecture gradually becomes more rigid and harder to adapt to the agile development cycle. A small change in any service will lead to rebuilding and redeployment of the entire application. Moreover, developers in the team must work closely together and cannot freely establish their own paces. For that reason, the microservices architecture arises. In general, an application is disassembled into services according to different business capabilities \cite{microservicesfowler}. These services are self-contained and loosely-coupled with each other. Each of them maintains a separate database and expose its data with other only via a mutually agreed contract. Since every service itself is an independent deployable, it can have its own development cycle and technology stack. Services also allow finer-grained scaling of the application. This is very useful for reducing cost when deploying the application to the cloud \cite{villamizar2016infrastructure}.
+As the application expands, monolithic architecture gradually becomes more rigid and harder to adapt to the agile development cycle. A small change in any service will lead to rebuilding and redeployment of the entire application. Moreover, developers in the team must work closely together and cannot freely establish their own paces. For that reason, the microservices architecture arises. In general, an application is disassembled into services according to different business capabilities \cite{microservicesfowler}. These services are self-contained and loosely-coupled with each other. Each of them maintains a separate database and expose its data with others only via a mutually agreed contract. Since every service itself is an independent deployable, it can have its own development cycle and technology stack. Services also allow finer-grained scaling of the application. This is very useful for reducing cost when deploying the application to the cloud \cite{villamizar2016infrastructure}.
 
 
 In microservices applications or distributed systems in general, systems or services need to have a mechanism to coordinate and work together to achieve end results. There are typically two approaches for this task, namely, request-driven and event-driven \cite{stopford2018designingeventdriven}.
@@ -20,7 +20,7 @@ In the first approach, a system sends command to request for state change or que
 An event represents something occurred in the past and cannot be altered or deleted \cite{cqrsgregyoung}. It is simply a fact stating what has happened in the system. Whenever a system updates its state, it sends out an event. Any other system can listen and operate on this event without the sender knowing about it. This leads to inversion of control when the receiver of events now dictates the operational logic. As a result, the systems can be more loosely coupled. New service or system can be easily plugged in and start to consume events while other services remain unmodified. There are three common patterns to use events, namely, event notification, event-carried state transfer and event sourcing \cite{martinfowlereventdriven}.
 
 \textbf{Event Notification}\\
-The events are used only for notifying about a state change on the sender. Receiver decides which operation should be executed upon receiving the events. This usually involves querying for more information from either the publisher of events or another system.   
+When a system updates its state, it also sends out a corresponding event. The events are used only for notifying about a state change on the sender. Receiver decides which operation should be executed upon receiving the events. This usually involves querying for more information from either the publisher of events or another system.   
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=\linewidth]{images/eventnotification.png}
@@ -59,7 +59,7 @@ Event sourcing is often used together with CQRS \cite{cqrsgregyoung}. The CQRS p
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=\linewidth]{images/cqrs.png}
+	\includegraphics[width=14cm]{images/cqrs.png}
 	\caption{Event sourcing and CQRS.}
 	\label{fig:cqrs}
 \end{figure}
@@ -72,7 +72,7 @@ Event-driven architecture and its related patterns are useful but it also comes 
 
 
 \section{Stream Processing} \label{section:eventstreamprocessing}
-With the increasing amount of data, the demand about how data is processed and analyzed also evolves over time. With the batch processing paradigm, data is collected over a predefined period of time and stored in a big bounded batch. Some scheduled batch jobs will then go over the entire batch of data to generate insights and reports tying to the needs of organizations. However, this type of data processing gradually cannot keep up with the need of faster analysis to allow companies to response more timely to changes. Therefore, the concept of stream processing begins to emerge.
+With the increasing amount of data, the demand about how data is processed and analyzed also evolves over time. With the batch processing paradigm, data is collected over a predefined period of time and stored in a big bounded batch. Some scheduled batch jobs will then go over the entire batch of data to generate insights and reports tying to the needs of organizations. However, this type of data processing gradually cannot keep up with the need of faster analysis to allow companies to react more timely to changes. Therefore, the concept of stream processing begins to emerge.
 
 
 Unlike its batch counterpart, stream processing aims at handling unbounded data which is a better form for representing the flow of events in real world given their continuous and boundless nature. Stream processing frameworks are designed to handle this type of data with high throughput and horizontal scalability. A stream processor can ingest one or more input streams and execute its business logic. It can also generate new data to other output streams which subsequently can be consumed by other stream processors. The data flow is continuous and new stream processors can always be added to incorporate new processing logic and generate more results.
@@ -84,14 +84,14 @@ Unlike its batch counterpart, stream processing aims at handling unbounded data 
 \end{figure}
 
 
-By processing this influx of data continuously as they arrives, events and changes can be detected with low latency making stream processing more suitable for real-time use cases. Moreover, the input data can come from numerous sources with varying transmission rates. Therefore, data may arrive late and out of order with respect to the time it is generated at the source. In this case, for it sees data in an endless fashion, stream processing gives more tolerance for late data and more flexibility to assemble data into windows and sessions to extract more useful information. It is even suggested that a well-designed stream processing system with guarantee of correctness and the capability to effectively manage the time semantics could surpass batch processing system \cite{stream101}. Back in the time when using stream processing was a trade-off between accuracy and low-latency, it was a popular idea to run two batch and stream processing pipelines in parallel to achieve both fast and correct results \cite{questionlambdaarchitecture}. As stream processing engines grow more mature and accurate, the demand for such system is lessened.
+By processing this influx of data continuously as they arrives, events and changes can be detected with low latency which makes stream processing more suitable for real-time use cases. Moreover, the input data can come from numerous sources with varying transmission rates. Therefore, data may arrive late and out of order with respect to the time it is generated at the source. In this case, for it sees data in an endless fashion, stream processing gives more tolerance for late data and more flexibility to assemble data into windows and sessions to extract more useful information. It is even suggested that a well-designed stream processing system with guarantee of correctness and the capability to effectively manage the time semantics could surpass batch processing system \cite{stream101}. Back in the time when using stream processing was a trade-off between accuracy and low-latency, it was a popular idea to run two batch and stream processing pipelines in parallel to achieve both fast and correct results \cite{questionlambdaarchitecture}. As stream processing engines grow more mature and accurate, the demand for such system is lessened.
 \subsection{Stream Processing and Event-Driven Architecture}
 Stream processing is not merely a data processing paradigm to achieve low latency result. Applying the concept of streaming and event-driven architecture also has the potential to help build more scalable and resilient software infrastructure for organizations. A big institution using software in every operational aspect usually has a sophisticated software infrastructure providing different functionalities such as business applications, query and analytical services, monitoring system, data warehouse. In this case, the problem of coupling between these processing and data systems will eventually emerge as the systems grows. Data needs to be shared and synchronized between these components. Without an efficient way to integrate system-wide data, the entire system can quickly turns into a big tangled mesh. As an example, this problem was experienced at LinkedIn as their system became increasingly complex \cite{eventstreamingplatform}. 
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=13.9cm]{images/linkedin-data-flow-ugly.png}
-	\caption{The tangled data systems at LinkedIn in the old day \cite{eventstreamingplatform}.}
+	\includegraphics[width=12.9cm]{images/linkedin-data-flow-ugly.png}
+	\caption{The tangled data systems at LinkedIn in the old day (taken from \cite{eventstreamingplatform}).}
 	\label{fig:tangledsystem}
 \end{figure}
 
@@ -99,7 +99,7 @@ Jay Kreps, who was in the team which first created Apache Kafka at LinkedIn and 
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=\linewidth]{images/eventstreamprocessing.png}
+	\includegraphics[width=12.9cm]{images/eventstreamprocessing.png}
 	\caption{System with streams of events as the single source of truth.}
 	\label{fig:eventstreamprocessingsystem}
 \end{figure}
@@ -118,7 +118,7 @@ In order to be more useful and easier to be integrate into the infrastructure of
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=10cm,height=4.5cm]{images/espplatform.png}
+	\includegraphics[width=10cm]{images/espplatform.png}
 	\caption{Capabilities of an \acrshort{esp} platform.}
 	\label{fig:espplatform}
 \end{figure}
