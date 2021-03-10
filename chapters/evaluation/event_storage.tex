@@ -39,7 +39,7 @@ For the first strategy, user can choose different retention policies for a parti
 	\caption{Log compaction on Kafka (taken from Kafka documentation \cite{kafkadesignlogcompact}).}
 	\label{fig:compactekafka}
 \end{figure}
-For the second strategy, the background cleaner thread of Kafka will regularly scan the segment files and keep only the latest record for each key value (Figure \ref{fig:compactekafka}). Therefore, this only works with records with non-empty key value. Writing request of record without a key to a topic configured with compact cleanup policy will be rejected.
+For the second strategy, the background cleaner thread of Kafka will regularly scan the segment files and keep only the latest record for each key value (figure \ref{fig:compactekafka}). Therefore, this only works with records with non-empty key value. Writing request of record without a key to a topic configured with compact cleanup policy will be rejected.
 
 
 The two strategies can also be combined. With this setup, topics will be compacted regularly but when the retention maximum size or maximum retention period is reached, the data will also be removed regardless of being compacted or not. For example, in case of an online shopping application where each order is kept track by a sequence of events published to Kafka as records, when users are interested in the latest status of an order but only if the order is not older than 3 months, it is reasonable to use this combination of retention strategies.
