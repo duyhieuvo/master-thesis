@@ -2,17 +2,20 @@
 In systems with asynchronous messaging, messaging semantics such as ordering guarantee, delivery guarantee cannot be provided by the message broker alone. The producers and consumers of messages must collaborate with the messages broker to achieve different levels of semantics. Therefore, in this section, before going into the evaluation, the general prerequisite for collaboration of the clients, which is true for all ESP platforms, is briefly recapped.
 \subsection{General prerequisite}
 \textbf{Strong ordering guarantee}\\
-To achieve ordering guarantee of messages, the throughput must be compromised. On the message publishing side, at any time, messages from the same source must be published from only one producer instance. Otherwise, since concurrent producers publish events independently and are subject to different network conditions, the order of events cannot be preserved when they arrive at the ESP platform. Similarly for consumers, to guarantee that messages from the same source are processed in the correct order, concurrent consumption with multiple application instances is not permitted.
 
-To have both concurrency and ordering guarantee, the concurrent instances must coordinate with each other to enforce the right order when publishing or consuming messages. Nevertheless, this method can introduce more overhead to the system.
-
-Moreover, when a producer asynchronously send a message and proceed to the next one before receiving acknowledgement from the broker, if a message fails to reach the broker and is resent later, it is possible that another message may arrive in between causing their orders to be interchanged (figure \ref{fig:outorderretry}).
-\begin{figure}[h]
+\begin{figure}[h!]
 	\centering
 	\includegraphics[width=10cm]{images/order.png}
 	\caption{Asynchronous publishing and retrying causes out-of-order messages.}
 	\label{fig:outorderretry}
 \end{figure}
+
+To achieve ordering guarantee of messages, the throughput must be compromised. On the publishing side, at any time, messages from the same source must be published from only one producer instance. Otherwise, since concurrent producers publish events independently and are subject to different network conditions, the order of events cannot be preserved when they arrive at the ESP platform. Similarly for consumers, to guarantee that messages from the same source are processed in the correct order, concurrent consumption with multiple application instances is not permitted.
+
+To have both concurrency and ordering guarantee, the concurrent instances must coordinate with each other to enforce the right order when publishing or consuming messages. Nevertheless, this method can introduce more overhead to the system.
+
+Moreover, when a producer asynchronously send a message and proceed to the next one before receiving acknowledgement from the broker, if a message fails to reach the broker and is resent later, it is possible that another message may arrive in between causing their orders to be interchanged (figure \ref{fig:outorderretry}).
+
 
 Therefore, in case the broker does not support detect out-of-order of asynchronously published messages, producer should only synchronously publish message one by one for ordering guarantee.
 
@@ -47,7 +50,7 @@ On the consumer side, in a Kafka consumer group, each partition of the topic is 
 
 On the producer side, all events from the same source must be sent to the same partition where order is guaranteed by Kafka. By default, records with the same key value will be published to the same partition. Therefore, producers must assign appropriate key value for each published message.
 
-Asynchronous publishing of messages while ensuring order is also possible with Kafka. From Kafka 0.11, the idempotent producer is introduced \cite{kafkatransaction}. When this feature is enabled on a producer, for each targeted partition, each writing request will be assigned an incremental sequence number which will be used for deduplication on the broker in case of retrying. Thanks to this sequence number, Kafka can also tolerate up to 5 asynchronous publishing requests from one producer.
+Asynchronous publishing of messages while ensuring order is also possible with Kafka. From Kafka 0.11, the idempotent producer is introduced \cite{kafkatransaction}. When this feature is enabled on a producer, for each targeted partition, each writing request will be assigned an incremental sequence number which will be used for deduplication on the broker in case of retrying. Thanks to this sequence number, Kafka can also tolerate up to 5 asynchronous publishing requests from one producer and keep track of their order.
 
 \textbf{At-most-once and At-least-once delivery semantics}\\
 With Kafka producer, users have the flexibility to control the level of durability of published messages. Producer can be configured to wait for acknowledgements from only the leader partition, from all in-sync replicas or not wait for any confirmation from Kafka broker at all \cite{kafkaconfigurationproducer}. For the at-most-once guarantee, producer can be configured to send a record and immediately proceed to the next one without waiting for acknowledgement from the server. With the at-least-once guarantee, durability of published message must be ensured. Therefore, as elaborated in section \ref{section:eventstorage}, the producer must be configured to wait for the acknowledgements from all in-sync replicas to ensure that the published message is safely received and replicated by the Kafka server. Internally, if Kafka producer is configured to wait for acknowledgement from brokers, it will retry in case of failure until timeout. Therefore, there is no need to implement the retry logic in the application. 
@@ -94,18 +97,18 @@ When using Pulsar producer, it is not possible to publish messages in a fire-and
 
 On the consuming side, the application must update the reading position (by either acknowledging if Pulsar consumer is used or persisting message ID of the consumed message if Pulsar reader is used) and durably persist the calculated in the appropriate order for the delivery semantics.
 
-Considering both publishing and consuming sides, Pulsar clients only support at-least-once delivery semantics.
+Considering both publishing and consuming sides, Pulsar clients only fully support at-least-once delivery semantics.
 
 \textbf{Exactly-once semantics}\\
 From release 1.20.0, Pulsar provides idempotent producer to discard any duplicated message introduced by producer retrying \cite{pulsaridemproducer}. With this feature, each producer must be assigned a globally unique name. Each message published to a Pulsar topic will be automatically assigned an incremental sequence ID by the producer. Pulsar broker will use the producer name and the sequence ID to uniquely identify each message published by a producer on a topic and discard any duplicated message resulted from retrying. 
 
 For deduplication of duplicated messages created by consumer between two connection sessions, from release 2.7.0, Pulsar provides the transaction feature for Pulsar producer and consumer \cite{pulsartransaction}. With this new feature, users can publish messages to multiple Pulsar topics as well as acknowledge consumed message on numerous Pulsar source topics in one atomic operation. If the application fails during the transaction, all half-committed values will be discarded.  
 
-For application which reads messages from Pulsar and produces results back to Pulsar, exactly-once semantics can be achieved. The transaction feature can be used to ensure that the application will always recover from a crash with a clean state on both source and output Pulsar topics.   
+For application which reads messages from Pulsar and produces results back to Pulsar, exactly-once semantics can be achieved. The transaction feature can be used to ensure that the application will always recover from a crash with a clean state on both input and output Pulsar topics.   
 
 For application which processes data on external system and produces messages to Pulsar, it can use Pulsar producer to send messages and the corresponding reading positions on the external system to Pulsar in one transaction.  In this way, the application can resume the consumption on the external system after failure with the committed position on Pulsar to ensure the exactly-once semantics. 
 
-In case of application which reads messages from Pulsar and writes result to an external system, the Pulsar transaction cannot span on both systems. In this case, exactly-once must be self-implemented. For instance, the Pulsar transaction can be integrated into the two-phase commit protocol \cite{twophasecommit} to acknowledge consumed messages on Pulsar and produce new messages to external system. This approach is used in the implementation of this connector to connect Apache Pulsar and Apache Flink \cite{pulsarflinkconnector}. However, this method depends on the availability of support for two-phase commit on destination system. Users can also use Pulsar reader to have more flexible control on the reading position on Pulsar. In this case, the message ID of the currently consume message on Pulsar can be persist together with the corresponding result to the external system to achieve atomicity similarly to Kafka.
+In case of application which reads messages from Pulsar and writes result to an external system, the Pulsar transaction cannot span on both systems. In this case, exactly-once must be self-implemented. For instance, the Pulsar transaction can be integrated into the two-phase commit protocol \cite{twophasecommit} to acknowledge consumed messages on Pulsar and produce new messages to external system. For example, this approach is used in the implementation of a connector to connect Apache Pulsar and Apache Flink \cite{pulsarflinkconnector}. However, this method depends on the availability of support for two-phase commit on destination system. Users can also use Pulsar reader to have more flexible control on the reading position on Pulsar. In this case, the message ID of the currently consume message on Pulsar can be persist together with the corresponding result to the external system to achieve atomicity similarly to Kafka.
 
 The transaction feature is still in technical review phase. Therefore, this feature should not be used for production and exactly-once semantics is considered to be only partly supported on Apache Pulsar at the moment.
 
@@ -130,7 +133,7 @@ On the subscriber, to guarantee the order of messages, only normal subscription 
 Moreover, with its delivery model, NATS streaming actively pushes messages to subscriber and expects that these messages will be processed right away and acknowledged shortly after. Therefore, in case the consumption of a message takes longer time than the timeout for acknowledgement, the message can be resent out-of-order along with new messages. If the processing speed of client does not match the delivery of server, the sequence of delivered messages will not retain the right order anymore (figure \ref{fig:ordernats}).
 
 
-Therefore, the sending rate of the server must be limited to only one unacknowledged message at a time necessary to avoid out-of-order redelivery \cite{natsdevelopingacks}. As a result, it is not possible to receive messages in batch with NATS Streaming. 
+Therefore, the sending rate of the server must be limited to only one unacknowledged message at a time to avoid out-of-order redelivery \cite{natsdevelopingacks}. As a result, it is not possible to receive messages in batch with NATS Streaming. 
 
 \begin{figure}[h]
 	\centering
@@ -146,7 +149,7 @@ Internally NATS producer always wait for acknowledgement from server after publi
 
 NATS subscriber must acknowledge every consumed messages so that the server can continue to push next unacknowledged messages. However, the acknowledgement by NATS client to server is fire-and-forget \cite{natsorder}. The acknowledgment can be lost without the subscriber knowing about it which will cause the the message to be resent. If a consumer can perform deduplication to process each message exactly once, end-to-end at-most-once guarantee can still be realized. Nevertheless, as will be seen in the next evaluation section, end-to-end exactly-once guarantee cannot be achieved on NATS Streaming. As a result, at-most-once delivery guarantee is also not realizable by NATS Streaming.
 
-On the other hand, at-least-once consumption of messages is possible with NATS clients. Consumer must update its reading position (by acknowledging the message with the server for durable subscription or checkpointing the reading position to external system for non-durable subscription) after it has durably published the calculated result. In case of non-durable subscription, the consumer still needs to send acknowledgement to the server. Nevertheless, when to acknowledge is irrelevant since the consumer only relies on the external checkpoint to resume the consumption. 
+On the other hand, at-least-once consumption of messages is possible with NATS clients. Consumer must update its reading position (by acknowledging the message with the server for durable subscription or checkpointing the reading position to external system for non-durable subscription) after it has durably published the calculated result. In case of non-durable subscription, the consumer still needs to send acknowledgement to the server to receive next messages on the channel. Nevertheless, when to acknowledge is irrelevant since the consumer only relies on the external checkpoint to resume the consumption. 
 
 \textbf{Exactly-once semantics}\\
 Currently, NATS Streaming server does not support detect and discard duplication within one connection session when a client resends a message multiple time. If deduplication is needed, it must be self-implemented on the application layer. 

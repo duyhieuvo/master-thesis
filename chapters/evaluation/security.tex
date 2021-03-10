@@ -22,6 +22,7 @@ On the other hand, for the connections from Kafka brokers to Zookeeper, Kafka au
 \textbf{Encryption}\\
 Kafka only supports encryption when transferring data using TLS/SSL \cite{kafkasecurity}. More specifically, the connections between Kafka brokers and clients, between two brokers, from broker to Zookeeper, and connections to REST endpoints of Kafka tools can be encrypted using the Public-Key Cryptography. Other than that, Kafka supports neither encryption of data at rest nor end-to-end encryption between two end clients.  
 
+Figure \ref{fig:securitykafka} summarizes the supported security mechanisms to protect a Kafka cluster.
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=11.5cm]{images/security-kafka.png}
@@ -34,11 +35,11 @@ Kafka only supports encryption when transferring data using TLS/SSL \cite{kafkas
 \textbf{Authentication mechanisms}\\
 A Pulsar cluster comprises of multiple components. There are the Pulsar brokers, the Bookkeeper cluster and the Zookeeper nodes. In addition, when Pulsar Function or Pulsar IO is used and configured to be run separately from the brokers, there are also nodes of function workers in the cluster. All these components are interconnected. Pulsar provides different authentication mechanisms to protect these components against unauthorized accesses \cite{pulsarsecurity}.
 
-For the Pulsar brokers and function worker nodes, Pulsar supports different authentication mechanisms. Clients connecting to a broker can be verified using mutual authentication of TLS/SSL protocol \cite{tls}. SASL authentication \cite{sasl} can also be used. Pulsar currently supports two SASL mechanisms which are OAUTHBEARER and GSSAPI (Kerberos). Moreover, with the OAUTHBEARER mechanism, Pulsar also provides a built-in tool to generate and verify token for client identification without having to rely on an additional authorization server. Authentication on Pulsar can also be done with Athenz, which is an open-source platform developed by Yahoo for authentication and authorization based on certificates
+For the Pulsar brokers and function worker nodes, Pulsar supports different authentication mechanisms. Clients connecting to a broker can be verified using mutual authentication of TLS/SSL protocol \cite{tls}. SASL authentication \cite{sasl} can also be used. Pulsar currently supports two SASL mechanisms which are OAUTHBEARER and GSSAPI (Kerberos). Moreover, with the OAUTHBEARER mechanism, Pulsar also provides a built-in tool to generate and verify token for client identification without having to rely on an additional authorization server. Authentication on Pulsar can also be done with Athenz, which is an open-source platform developed by Yahoo for authentication and authorization based on certificates.
 
 A Pulsar broker can be configured with multiple authentications mechanisms. Any client which wants to connect to this broker such as Pulsar producer, consumer, admin client, another broker or function worker must provide its identity with one of the supported authentication schemes of the broker. 
 
-For the connections from Pulsar brokers to Zookeeper and Bookkeeper nodes, they can be protected with either SASL Kerberos authentication mechanism or TLS/SSL certificate-based authentication. Finally, for the connection from Bookkeeper to Zookeeper, users can also configure the authentication using TLS/SSL to control access.
+For the connections from Pulsar brokers to Zookeeper and Bookkeeper nodes, they can be protected with either SASL Kerberos authentication mechanism or TLS/SSL certificate-based authentication. For the connection from Bookkeeper to Zookeeper, users can also configure the authentication using TLS/SSL to control access. Nevertheless, these authentication mechanisms to protect Zookeeper and Bookkeeper are not well-documented on Pulsar website. 
 
 \textbf{Authorization mechanisms}\\
 To control access of authenticated clients to resources on Pulsar brokers and function workers, Pulsar provides a built-in authorizer to define ACL \cite{pulsarsecurity}.
@@ -47,10 +48,12 @@ The resources provided by Pulsar brokers are hierarchical. At the lowest level i
 
 Pulsar does not support RBAC. Currently, there is not any mechanism to define and bind roles to clients and control access based on that.
 
-For resources on Zookeeper and Bookkeeper, it is not documented. Therefore, it can be assumed that Pulsar manages the authorization internally and does not expose the control to users. 
+For resources on Zookeeper and Bookkeeper, authorization is not documented. Therefore, it can be assumed that Pulsar manages the authorization internally and does not expose the control to users. 
 
 \textbf{Encryption}\\
 All connections in a Pulsar cluster can be encrypted with the TLS/SSL protocol. Moreover, Pulsar clients also supports end-to-end encryption \cite{pulsarsecurity}. This is achieved by combining symmetrical encryption and public-key encryption methods. A Pulsar producer can dynamically generate a symmetric key to encrypt payloads of messages. This symmetric key is then encrypted using a different public key in a public-private key pair and included in the header of the messages. On the consumer side, the consumer can use the corresponding private key to decrypt and retrieve the symmetric key used for payload encryption and then use that to read the messages. However, the distribution of the public-private key pair to the clients is not covered by Pulsar. Users must handle this task manually. 
+
+Figure \ref{fig:securitypulsar} illustrates a fully-protected Pulsar cluster using supported security mechanisms.
 
 \begin{figure}[h]
 	\centering
@@ -64,7 +67,7 @@ All connections in a Pulsar cluster can be encrypted with the TLS/SSL protocol. 
 \textbf{Authentication mechanisms}\\
 A NATS Streaming server comprises of a NATS Server and a separated streaming module to provide durability of messages on top of the volatile NATS messaging system. 
 
-NATS Streaming relies on the authentication mechanisms of normal NATS Server to control incoming accesses from clients \cite{normalnatsconfig}. In addition, since the streaming module is also a NATS client internally, it must also use the provided authentication mechanisms to connect to the NATS Server and serve requests from clients. On the other hand, since the durable storage is pluggable, it is beyond the scope of NATS Streaming to provide authentication for this component. Users must utilize the mechanism provided by the selected datastore.
+Because requests from client must traverse the NATS messaging layer before reaching the streaming module, NATS Streaming relies on the authentication mechanisms of normal NATS server to control incoming accesses from clients \cite{normalnatsconfig}. In addition, since the streaming module is also a NATS client internally, it must also use the provided authentication mechanisms to connect to the NATS messaging server. On the other hand, since the durable storage is pluggable, it is beyond the scope of NATS Streaming to provide authentication for this component. Users must utilize the mechanism provided by the selected datastore.
 
 Clients connected to the NATS server can be identified with mutual authentication using TLS/SSL protocol. NATS also provides a number of built-in authentication mechanisms. Users can configure the server and clients with a shared secret which will be used for authentication when a connection is established. NATS also provides a NATS-exclusive authentication mechanism which is public-key based and called NKey. Upon receiving connection request from a client, the server randomly generates a random value and challenges the client to encrypt that with its private key. The server can then verify the response from client by using the public key of the clients. With this authentication mechanism, NATS provides its own tool to generate public-key pairs and verify their legitimacy during authentication.
 
@@ -81,6 +84,8 @@ Therefore, authorization is currently not supported on NATS Streaming.
 Connections from clients to the NATS streaming server and from streaming module to the NATS server can be encrypted with the TLS/SSL protocol \cite{normalnatsconfig}. The connection from streaming module to the datastore is not covered by NATS. If this connection needs to be encrypted, users must choose the appropriate encryption scheme which is supported by the selected datastore.
 
 Moreover, NATS Streaming also supports encryption of data at rest. The server can be configured with an encryption key and that will be used by the streaming module to encrypt the payload of all messages before persisting them in the durable storage \cite{natstoreencryption}. However, more fine-grained encryption such as different encryption keys for messages from different clients is not possible on NATS Streaming.
+
+Figure \ref{fig:securitynats} shows the overview of a secured NATS Streaming server.
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=10.5cm]{images/security-nats.png}

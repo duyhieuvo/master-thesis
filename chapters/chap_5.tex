@@ -3,7 +3,7 @@ As elaborated in section \ref{section:semantics}, Apache Kafka and Apache Pulsar
 \section{Overview}
 For the realization of delivery guarantee, a simple use case of banking transactions is used. Transactional activities of customers are recorded as events and published to the ESP platform. These raw events are transformed and the values of all transactions are aggregated to generate the current account balance for each user. The overview of event flow and the main components in the implementation is showed in figure \ref{fig:impusecase}.
 
-To simulate the incoming events from customers, an event generator is implemented. The generator reads events from a CSV file which is prepared in advanced with data of 1000 transactional events. The generator then publishes these events to an event stream named \emph{raw-event}. Moreover, the event generator also checkpoints the line number in the CSV file of the published event to another stream named \emph{reading-position} on the ESP platform. In this way, when the event generator restarts, it can retrieve this checkpoint and resume the reading on the source file at the right position. 
+To simulate the incoming events from customers, an event generator is implemented. The generator reads events from a CSV file which is prepared in advanced with data of 1000 transactional events of 5 customers. The generator then publishes these events to an event stream named \emph{raw-event}. Moreover, the event generator also checkpoints the line number in the CSV file of the published event to another stream named \emph{reading-position} on the ESP platform. In this way, when the event generator restarts, it can retrieve this checkpoint and resume the reading on the source file at the right position. 
 
 To transform raw event, a stream processor is implemented. This component will ingest data from \emph{raw-event} stream, extract and transform the transactional value based on the event type and publish this transformed event back into another stream \emph{transformed-event}. This component will rely on the built-in mechanism of the ESP platform to manage the reading position on the \emph{raw-event} stream.
 
@@ -13,9 +13,10 @@ To transform raw event, a stream processor is implemented. This component will i
 \begin{adjustwidth}{-1cm}{}
 	\centering
 	\includegraphics[width=18cm,height=\textheight]{images/implementation-use-case-1.png}
-	\caption{Use case to implement delivery guarantee on the platforms.}
-	\label{fig:impusecase}
+	
 \end{adjustwidth}
+\caption{Use case to implement delivery guarantee on the platforms.}
+\label{fig:impusecase}
 \end{figure}
 
 
@@ -26,16 +27,16 @@ With this setup, message duplication can be easily detected because any transact
 
  
 \subsection{Failure scenarios}  \label{subsection:failurescenarios}
-To focus on the components which interact directly with the platform, the source CSV file with events data and the relational database is assumed to be reliable with no failure. Moreover, the platforms are configured to be fault-tolerant with redundancies and assumed to be resilient to failures.  Failure scenarios will only be derived for three components: event generator, stream processor, and view generator.
+To focus on the components which interact directly with the platform, the source CSV file with events data and the relational database are assumed to be reliable with no failure. Moreover, the platforms are configured to be fault-tolerant with redundancies and assumed to be resilient to failures.  Failure scenarios will only be derived for three components: event generator, stream processor, and view generator.
 
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=8cm]{images/reading-position-fail.png}
-	\caption{Failure scenarios \emph{event-generator-crash}, \emph{stream-processor-crash} and \emph{stream-aggregator-crash}.}
+	\caption{Failure scenarios \emph{event-generator-crash}, \emph{stream-processor-crash} and \emph{view-generator-crash}.}
 	\label{fig:scenarioreadingposition}
 \end{figure}
 
-These components all have the processing cycle of an event as read-modify-write. After writing the modified event, these components must successfully update the reading position on the source system. Otherwise, failure when updating reading position can lead to the case where the last processed message will be redelivered and reprocessed when the application restarts. Three failure scenarios, namely, \emph{event-generator-crash}, \emph{stream-processor-crash} and \emph{stream-aggregator-crash}, are derived for three processing components. In each failure scenario, one processing component along the processing pipeline is deliberately terminated before it can checkpoint the reading position on the data source to simulate the application crash (figure \ref{fig:scenarioreadingposition}). After that, the processing component will be restarted to continue with its incomplete task.
+These components all have the processing cycle of an event as read-modify-write. After writing the modified event, these components must successfully update the reading position on the source system. Otherwise, failure when updating reading position can lead to the case where the last processed message will be redelivered and reprocessed when the application restarts. Three failure scenarios, namely, \emph{event-generator-crash}, \emph{stream-processor-crash} and \emph{view-generator-crash}, are derived for three processing components. In each failure scenario, one processing component along the processing pipeline is deliberately terminated before it can checkpoint the reading position on the data source to simulate the application crash (figure \ref{fig:scenarioreadingposition}). After that, the processing component will be restarted to continue with its incomplete task.
 
 
 
@@ -75,7 +76,7 @@ However, ownership on a partition can be revoked before the owning consumer is n
 	\label{fig:failurescenario}
 \end{figure}
 \fi
-The failure scenario \emph{duplicated-consumer} can also occur with Pulsar. When a consumer subscribe to a Pulsar topic, messages on all topic assigned to this consumer will be pushed to a local queue until it is full \cite{pulsarbinaryprotocol}. When the consumer has consumed and acknowledged half of the buffered messages, new messages will be delivered. When a new consumer joins the same failover subscription, Pulsar broker will assign some topic partitions to it for load balancing. In this case, if the old consumer has not processed and acknowledged all messages of the reassigned partition on its queue, these messages will be redelivered again to the new consumer which causes message duplication on the queue of two consumers. This scenario can be provoked by introduced a small delay into the first consumer instance before it can start to process the messages on its local queue to give the second consumer instance enough time to join the subscription and receive the unprocessed messages again. This is illustrated in figure \ref{fig:pulsarscenario}.
+The failure scenario \emph{duplicated-consumer} can also occur with Pulsar. When a consumer subscribe to a Pulsar topic, messages on all topic assigned to this consumer will be pushed to a local queue until this queue is full \cite{pulsarbinaryprotocol}. When the consumer has consumed and acknowledged half of the buffered messages, new messages will be delivered. When a new consumer joins the same failover subscription, Pulsar broker will assign some topic partitions to it for load balancing. In this case, if the old consumer has not processed and acknowledged all messages of the reassigned partition on its queue, these messages will be redelivered again to the new consumer which causes message duplication on the queues of two consumers. This scenario can be provoked by introduced a small delay into the first consumer instance before it can start to process the messages on its local queue to give the second consumer instance enough time to join the subscription and receive the unprocessed messages again. This is illustrated in figure \ref{fig:pulsarscenario}.
 
 \begin{figure}[h]
 	\centering

@@ -26,7 +26,7 @@ When a broker goes down, the partitions with replicas persisted on the failed br
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=\linewidth]{images/broker-failover-kafka.png}
-	\caption{Kafka clustered is scaled up with a new broker.}
+	\caption{Availability on Kafka cannot be guaranteed when partition is under-replicated.}
 	\label{fig:brokerfailoverkafka}
 \end{figure}
 In figure \ref{fig:brokerfailoverkafka}, when broker 1 fails and the replica of partition 1 on broker 3 becomes out-of-sync with the leader, broker 2 cannot accept new writing requests for partition 1 since it cannot meet the minimum in-sync replicas of two. Broker 4 cannot support to ensure the availability since it does not retain the copy of partition 1. In this case, the availability is compromised for the reliability of data persistence.
@@ -51,7 +51,7 @@ On the storage layer, scalability is achieved by the built-in mechanism of Bookk
 \end{figure}
 
 If a Bookkeeper node is shut down, some fragments with messages persisted on this node will be under-replicated. However, the auto recovery feature of Bookkeeper can detect this and re-replicate these messages to other running nodes to maintain the replication quorum \cite{bookkeeperadmin}.
-
+\newpage
 \textbf{Broker failover mechanism}\\
 The brokers are registered to the Zookeeper and regularly kept track of its online status. When a broker is detected to be failed by Zookeeper, its topic will be assigned to other online brokers in the cluster. Apache Pulsar uses the fencing mechanism of BookKeeper to prevent the disconnected broker from writing new message to the topic \cite{bookkeeperprotocol}. This ensures that at any time, only one broker can serve writing requests to a topic.
 

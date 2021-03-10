@@ -86,7 +86,7 @@ Figure \ref{fig:implementviewgenerator} illustrates the overall workflow of the 
 The two operations to persist snapshot of current balances and corresponding reading position are conducted in a transaction to ensure the atomicity and guarantee exactly-once semantics in case the view generator crashes in the middle on a transaction.
 
 \subsection{Failure injection}
-To provoke failure scenarios described in section \ref{subsection:failurescenarios}, custom codes are injected into the the application at runtime to pause or terminate the program using Byteman tracing tool for Java \cite{byteman}. With this tool, Byteman rule can be defined to inject arbitrary code into a running application when a condition is met. A Byteman rule contains of three main parts: 
+To provoke failure scenarios described in section \ref{subsection:failurescenarios}, custom codes are injected into the application at runtime to pause or terminate the program using Byteman tracing tool for Java \cite{byteman}. With this tool, Byteman rule can be defined to inject arbitrary code into a running application when a condition is met. A Byteman rule contains of three main parts: 
 \begin{itemize}
 	\item Event: this triggers the rule.
 	\item Condition: this part checks the current status of the running application.
@@ -112,7 +112,7 @@ The infrastructure comprises of the ESP platform and the PostgreSQL relational d
 	\item NATS Streaming: three NATS Streaming server instances in clustering mode and file-based persistence.
 \end{itemize}
 
-While Apache Pulsar and NATS Streaming have official Docker images, Apache Kafka is not released with a Docker image. Nevertheless, there are a number of Kafka Docker images provided by third-party organizations. In the thesis, the Kafka Docker image from the company Confluent is used as it is regularly updated.
+While Apache Pulsar and NATS Streaming have official Docker images, Apache Kafka is not released with a Docker image. Nevertheless, there are a number of Kafka Docker images provided by third-party organizations. In the thesis, the Kafka Docker image from the company Confluent is used as it is regularly updated and is widely used in the community.
 
 Regarding the processing components, their executable files are containerized and run in the same Docker environment as the infrastructure. For each processing component, different containers are prepared for the normal instance without failure and the fault-injected instance by Byteman. 
 

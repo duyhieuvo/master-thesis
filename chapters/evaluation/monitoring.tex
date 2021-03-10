@@ -21,7 +21,7 @@ In addition, Pulsar also provides an off-the-shelf and open-source tool named Pu
 \textbf{Technical monitoring}\\
 To support monitoring, a NATS Streaming server exposes statistics about its current status via an opened HTTP port \cite{natsmonitoring}. The metrics are returned to users in form of JSON. NATS Streaming also provides a Prometheus exporter to convert the metrics from the server monitoring port into Prometheus format to help users display and monitor the server more conveniently. 
 
-The metrics provided by the streaming server via the monitoring endpoints cover mostly information on the high level such as number of currently connected clients, number of channels, total messages received and persisted by the server, current consumption status of subscribers. Users can also keep track of the more detailed information such as memory and CPU usage, message throughput of the underlying NATS server of the streaming server via the same monitoring port \cite{normalnatsconfig}. 
+The metrics provided by the streaming server via the monitoring endpoints cover mostly information on the high level such as number of currently connected clients, number of channels, total messages received and persisted by the server, current consumption status of subscribers. Users can also keep track of the more low-level information such as memory and CPU usage, message throughput of the underlying NATS server of the streaming server via the same monitoring port \cite{normalnatsconfig}. 
 
 Although the supported metrics of NATS Streaming server are not as many as Apache Kafka or Apache Pulsar, they can still provide a generally good insight into the current status of the streaming server given the simplicity of NATS Streaming compared to the other two platforms.
 
