@@ -19,7 +19,7 @@ public class PulsarStreamProcessor {
                 //Publish the transformed event to 'transformed-event' topic
                 producer.newMessage(txn)
                         .key(customerId)
-                        .value(objectMapper.writeValueAsString(transformedRecord))
+                        .value(transformedEvent)
                         .send();
 
                 //Add the hook here to inject custom code during runtime to simulate the application crash

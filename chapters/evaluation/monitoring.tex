@@ -11,7 +11,7 @@ Apart from relying on the built-in monitoring mechanism of Kafka, there are also
 \large \textbf{Apache Pulsar}\\
 \normalsize
 \textbf{Technical monitoring}\\
-Components in a Pulsar cluster expose their monitoring metrics via HTTP ports in Prometheus format \cite{pulsarmetrics}. The Pulsar brokers provide numerous statistics about their current health and statuses such as usage of CPU, memory and network bandwidth, number of currently connected producers and consumers, total throughput. The Zookeeper and Bookkeeper shipped together with the Pulsar release also report many metrics on the opened HTTP ports.
+Components in a Pulsar cluster expose their monitoring metrics via HTTP ports in Prometheus format \cite{pulsarmetrics}. The Pulsar brokers provide numerous statistics about their current health and statuses such as usage of CPU, memory and network bandwidth, number of currently connected producers and consumers, total throughput. The Zookeeper and BookKeeper shipped together with the Pulsar release also report many metrics on the opened HTTP ports.
 These metrics can be directly collected by Prometheus to monitor and create alerts based on the current health of the Pulsar cluster. 
 
 In addition, Pulsar also provides an off-the-shelf and open-source tool named Pulsar-Manager to manage and monitor Pulsar clusters \cite{pulsarmanager}. It is a tool with web UI which can be quickly deployed and connected to a running Pulsar cluster to provide insight into the current status of the cluster. Moreover, users can also dynamically manage and configure the cluster via the UI of the tool such as updating configuration of Pulsar brokers, creating new topics, resetting reading position of consumers.
@@ -23,5 +23,5 @@ To support monitoring, a NATS Streaming server exposes statistics about its curr
 
 The metrics provided by the streaming server via the monitoring endpoints cover mostly information on the high level such as number of currently connected clients, number of channels, total messages received and persisted by the server, current consumption status of subscribers. Users can also keep track of the more low-level information such as memory and CPU usage, message throughput of the underlying NATS server of the streaming server via the same monitoring port \cite{normalnatsconfig}. 
 
-Although the supported metrics of NATS Streaming server are not as many as Apache Kafka or Apache Pulsar, they can still provide a generally good insight into the current status of the streaming server given the simplicity of NATS Streaming compared to the other two platforms.
+Although the supported metrics of NATS Streaming server do not have a wide coverage as those provided by Apache Kafka or Apache Pulsar, they can still provide a generally good insight into the current status of the streaming server given the simplicity of NATS Streaming compared to the other two platforms.
 
